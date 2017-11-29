@@ -20,7 +20,7 @@ This is a very lightweight library to validate different things
 
 ## Usage
 
-> **You can call any function in the *is* object using `is.method` or `Is.method` as `is` will be same as `Is because its declated in both names**
+> **You can call any function in the *is* object using `is.method` or `Is.method` as `is` will be same as `Is` because its declated in both names**
 
 #### Data Types
 
