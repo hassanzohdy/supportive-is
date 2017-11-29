@@ -1,4 +1,4 @@
-# Support Is
+# Supportive Is
 
 This is a very lightweight library to validate different things
 
