@@ -44,4 +44,6 @@ let name = 'Hasan';
 console.log(Is.undefined(name)); // false
 let myVar; // any declared variable without a value will be treated as undefined
 console.log(Is.undefined(myVar)); // true
+let age = undefined;
+console.log(Is.undefined(age)); // true
 ```
