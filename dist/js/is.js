@@ -14,7 +14,7 @@ const Is = is = {
     bool: variable => typeof variable == 'boolean',
     function: variable => typeof variable == 'function',
     scalar: variable => /string|number|boolean/.test(typeof variable),
-    empty: (variable) => {
+    empty(variable) {
         if (is.undefined(variable) || is.null(variable)) return true;
 
         if (is.object(variable)) return Object.keys(variable).length == 0;
@@ -26,10 +26,10 @@ const Is = is = {
         return true;
     },
     url: variable =>  (new RegExp('(?:(?:https?|ftp):\/\/|www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]','i')).test(variable),
-    cookieEnabled: () => {
+    cookieEnabled() {
         return navigator.cookieEnabled;
     },
-    json: (value) => {
+    json(value) {
         try {
             JSON.parse(value);
             return true;
@@ -39,23 +39,23 @@ const Is = is = {
     },
     email: email => /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email),
     mobile: {
-        android: () => {
+        android() {
             return navigator.userAgent.match(/Android/i);
         },
-        blackBerry: () => {
+        blackBerry() {
             return navigator.userAgent.match(/BlackBerry/i);
         },
-        ios: () => {
+        ios() {
             return navigator.userAgent.match(/iPhone|iPad|iPod/i);
         },
-        windows: () => {
+        windows() {
             return navigator.userAgent.match(/IEMobile/i);
         },
-        any: () {
+        any() {
             return Boolean(Is.android() || Is.blackBerry() || Is.ios() || Is.windows());
         },
     },
-    desktop: () {
+    desktop() {
         return ! Is.mobile.any();
     },
 };
