@@ -1,26 +1,25 @@
 # Support Is
----
-
+------
 This is a very lightweight library to validate different things
 
 # Install
-----
+------
 
 **1. Download the package and extract it**
 **2. Create new script tag before the end of the body and set the path for the js file**
  ``` html
-    <script src="path-to-is.min.js"></script>
+<script src="path-to-is.min.js"></script>
  ```
 
 
 # Dependencies
-----
+------
 
 > **No dependencies required to use this library**
 
 
 ## Usage
----
+------
 > **You can call any function in the *is* object using `is.method` or `Is.method` as `is` will be same as `Is because its declated in both names**
 
 #### Data Types
