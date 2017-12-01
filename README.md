@@ -4,8 +4,9 @@ This is a very lightweight library to validate different things
 
 # Install
 
-**1. Download the package and extract it**
-**2. Create new script tag before the end of the body and set the path for the js file**
+**-Download the package and extract it**
+
+**-Create new script tag before the end of the body and set the path for the js file**
  ``` html
 <script src="path-to-is.min.js"></script>
  ```
