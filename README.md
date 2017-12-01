@@ -137,24 +137,12 @@ console.log(Is.jquery(body)); // true
 
 Check if the given value is a dom element
 
-> Dom Elements are objects of **HTMLElement**, so any html element will be validated as true, something like **document** object
-
-``` javascript
-console.log(Is.dom(document)); // true
-let myForm = document.getElementById('my-form');
-console.log(Is.dom(document.body)); // true
-```
-
-#### Is.dom
-
-Check if the given value is a dom element
-
 > Dom Elements are objects of **HTMLElement**, so any html element will be validated as true, something like **document.body**
 
 > **document** and **window** are not validated as true as they are not part of the html elements
 
 ``` javascript
-console.log(Is.dom(document)); // true
+console.log(Is.dom(document)); // false
 let myForm = document.getElementById('my-form');
 console.log(Is.dom(document.body)); // true
 ```
