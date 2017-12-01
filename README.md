@@ -228,11 +228,11 @@ console.log(Is.empty(value)); // true
 value.name = 'Hasan';
 console.log(Is.empty(value)); // false
 
-// arrays
-value = [];                           '
+// Arrays
+value = [];
 console.log(Is.empty(value)); // true
 
-value.push(12);                           '
+value.push(12);
 console.log(Is.empty(value)); // false
 
 // The `Zero` is not considered as empty value
