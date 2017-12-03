@@ -342,3 +342,7 @@ if (! Is.cookeEnabled()) {
     // Oops!, cookies are not enabled!
 }
 ```
+
+## Change Log
+* V1.0.1
+    * Is.empty() now validates jquery objects

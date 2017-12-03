@@ -1,5 +1,5 @@
 ; /**
- * Supportive Is v1.0
+ * Supportive Is v1.0.1
  * A simple lightwegiht library to validate values agains certain types of data
  * For full documentation on github
  * Repo: https://github.com/hassanzohdy/supportive-is
@@ -56,7 +56,7 @@ const Is = {
      * @param mixed value
      * @return bool
      */
-    object: value => ! is.null(value) && typeof value === 'object',
+    object: value => ! Is.null(value) && typeof value === 'object',
      /**
      * Determine whether the given value is an array
      *
@@ -119,14 +119,16 @@ const Is = {
      * @return bool
      */
     empty(value) {
-        if (is.undefined(value) || is.null(value)) return true;
+        if (Is.undefined(value) || Is.null(value)) return true;
 
-        if (is.object(value)) return Object.keys(value).length == 0;
+        if (Is.jquery(value)) return value.length == 0;
+
+        if (Is.object(value)) return Object.keys(value).length == 0;
 
         // this is used here fo zero
-        if (is.numeric(value)) return false;
+        if (Is.numeric(value)) return false;
 
-        if (is.string(value) || is.array(value)) return value.length == 0;
+        if (Is.string(value) || Is.array(value)) return value.length == 0;
 
         return true;
     },
