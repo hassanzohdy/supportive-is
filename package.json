@@ -1,0 +1,41 @@
+{
+  "name": "@mongez/supportive-is",
+  "version": "1.0.5",
+  "description": "A lightweight tool to check variable types and other logical checks",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hassanzohdy/supportive-is"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "jest": "^27.4.5",
+    "jest-esm-jsx-transform": "^1.0.0",
+    "ts-jest": "^27.1.2",
+    "typescript": "^4.5.2"
+  },
+  "jest": {
+    "verbose": true,
+    "transform": {
+      "\\.js$": "jest-esm-jsx-transform",
+      "^.+\\.tsx?$": "ts-jest"
+    }
+  },
+  "keywords": [
+    "is-array",
+    "is-object",
+    "is-function",
+    "is-form-element",
+    "is-jquery-object",
+    "is-browser-chrome",
+    "is-mobile",
+    "is-desktop",
+    "is-boolean",
+    "is-string"
+  ],
+  "author": "hassanzohdy",
+  "license": "MIT"
+}
