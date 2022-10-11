@@ -664,8 +664,8 @@ console.log(Is.enabled.touch());
 console.log(Is.enabled.battery());
 console.log(Is.enabled.fetch());
 console.log(Is.enabled.history());
-console.log(Is.enabled.darkMode());
-console.log(Is.enabled.lightMode());
+console.log(Is.enabled.darkMode()); // will validate prefers-color-scheme media query (dark mode)
+console.log(Is.enabled.lightMode()); // will validate prefers-color-scheme media query (light mode)
 console.log(Is.enabled.animation());
 console.log(Is.enabled.transition());
 ```
