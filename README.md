@@ -20,6 +20,48 @@ import Is from '@mongez/supportive-is';
 // use it
 ```
 
+## Primitives
+
+We've tons of primitives to be checked, here are some of them.
+
+## Is.primitive
+
+Check if the given value is a `string`, `number`, `boolean`, `null`, `undefined` or `symbol`
+
+```ts
+console.log(Is.primitive('hello')); // true
+console.log(Is.primitive(22.5)); // true
+console.log(Is.primitive(false)); // true
+console.log(Is.primitive(null)); // true
+console.log(Is.primitive(Symbol('SymbolKey'))); // true
+console.log(Is.primitive(undefined)); // true
+console.log(Is.primitive([])); // false
+console.log(Is.primitive({})); // false
+```
+
+### Is.scalar
+
+Check if the given value is a `string`, `number` or `boolean`
+
+```ts
+console.log(Is.scalar('hello')); // true
+console.log(Is.scalar(22.5)); // true
+console.log(Is.scalar(false)); // true
+console.log(Is.scalar(null)); // false
+console.log(Is.scalar(undefined)); // false
+console.log(Is.scalar([])); // false
+console.log(Is.scalar({})); // false
+```
+
+### Is.json
+
+Check if the given value string is a valid json format
+
+```ts
+let value = '{"name":"Hasan","job":"Software Engineer"}';
+console.log(Is.json(value)); // true
+```
+
 ### Is.null
 
 Check if the given value is null
@@ -49,7 +91,7 @@ console.log(Is.undefined(age)); // true
 
 ### Is.numeric
 
-Check if the given value is a number whatever if its data type is String or Number
+Check if the given value is a number whether if its data type is `String` or `Number`
 
 ```ts
 let numberInt = 12;
@@ -64,6 +106,29 @@ console.log(Is.numeric(numberWrittenInString)); // true
 let floatWrittenInString = '99.99';
 console.log(Is.numeric(floatWrittenInString)); // true
 ```
+
+### Is.number
+
+Check if the given value is a number whether if its data type is `Number`
+
+```ts
+let numberInt = 12;
+console.log(Is.number(numberInt)); // true
+
+let numberFloat = 12.55;
+
+console.log(Is.number(numberFloat)); // true
+
+let numberWrittenInString = '99';
+
+console.log(Is.number(numberWrittenInString)); // false
+
+let floatWrittenInString = '99.99';
+
+console.log(Is.number(floatWrittenInString)); // false
+```
+
+> The major difference between `Is.numeric` and `Is.number` is that `Is.numeric` will return true if the given value is a string that contains a number
 
 ### Is.int
 
@@ -92,6 +157,36 @@ let numberInString = '12';
 console.log(Is.float(numberInString)); // false
 ```
 
+### Is.string
+
+Check if the given value is string
+
+```ts
+console.log(Is.string('this is a string')); // true
+```
+
+### Is.bool
+
+Check if the given value is boolean
+
+```ts
+console.log(Is.bool(true)); // true
+console.log(Is.bool(false)); // true
+```
+
+> Is.boolean is an alias for Is.bool
+
+### Is.symbol
+
+Check if the given value is a symbol
+
+```ts
+
+let mySymbol = Symbol('mySymbol');
+
+console.log(Is.symbol(mySymbol)); // true
+```
+
 ### Is.NaN
 
 Check if the given value is Not a Number
@@ -105,14 +200,36 @@ number = '76'; // string
 console.log(Is.NaN(number)); // true
 ```
 
+### Is.regex
+
+Check if the given value is a regular expression
+
+```ts
+
+let regex = /hello/;
+
+console.log(Is.regex(regex)); // true
+
+let regexString = '/hello/';
+
+console.log(Is.regex(regexString)); // false
+
+let regexObject = new RegExp('hello');
+
+console.log(Is.regex(regexObject)); // true
+```
+
+## Objects, Classes And Arrays
+
+Now let's check some objects.
+
 ### Is.object
 
 Check if the given value is an object
 
-Any type of objects will be validates true no matter its object type
+Any type of objects will be validated as true no matter its object type
 
 > Arrays are types of objects so any passed array will be validated as true
-
 > null values are considered objects in javascript, but it will be validated as false if provided.
 
 ```ts
@@ -140,7 +257,6 @@ if (Is.object(myVar) && ! Is.array(myVar)) {
 Check if the given value is a plain javascript object
 
 ```ts
-
 // plain objects
 let myObject = {};
 console.log(Is.plainObject(myObject)); // true
@@ -160,6 +276,18 @@ console.log(Is.plainObject(myArray)); // false
 console.log(Is.plainObject(null)); // false
 ```
 
+### Is.a
+
+Check if the given value is an instance of the given class
+
+```ts
+class myClass {}
+
+let myObject = new myClass;
+
+console.log(Is.a(myObject, myClass)); // true
+```
+
 ### Is.array
 
 Check if the given value is an array
@@ -169,73 +297,60 @@ let myArray = [4 , 'hello', 9];
 console.log(Is.array(myArray)); // true
 ```
 
-### Is.jquery
+### Is.iterable
 
-Check if the given value is a jquery object
+Check if the given value is iterable
 
 ```ts
-let body = $('body');
-console.log(Is.jquery(body)); // true
+
+let myArray = [1, 2, 3];
+
+console.log(Is.iterable(myArray)); // true
+
+let myObject = {a: 1, b: 2, c: 3};
+
+console.log(Is.iterable(myObject)); // true
+
+let myString = 'hello';
+
+console.log(Is.iterable(myString)); // true
+
+let myNumber = 123;
+
+console.log(Is.iterable(myNumber)); // false
+
+let myBoolean = true;
+
+console.log(Is.iterable(myBoolean)); // false
+
+let myFunction = function() {};
+
+console.log(Is.iterable(myFunction)); // false
+
+let myNull = null;
+
+console.log(Is.iterable(myNull)); // false
+
+let myUndefined = undefined;
+
+console.log(Is.iterable(myUndefined)); // false
 ```
 
-### Is.dom
-
-Check if the given value is a dom element
-
-> Dom Elements are objects of **HTMLElement**, so any html element will be validated as true, something like **document.body**
-> **document** and **window** are not validated as true as they are not part of the html elements
+It works fine as well with any class that implements the **Symbol.iterator** method
 
 ```ts
-console.log(Is.dom(document)); // false
 
-console.log(Is.dom(document.body)); // true
-```
-
-### Is.string
-
-Check if the given value is string
-
-```ts
-console.log(Is.string('this is a string')); // true
-```
-
-### Is.bool
-
-Check if the given value is boolean
-
-```ts
-console.log(Is.bool(true)); // true
-console.log(Is.bool(false)); // true
-```
-
-### Is.function
-
-Check if the given value is a function
-
-```ts
-function sum(x, y) {
-    return x + y;
+class myClass {
+    *[Symbol.iterator]() {
+        yield 1;
+        yield 2;
+        yield 3;
+    }
 }
 
-// you must pass the function name not the function call
-console.log(Is.function(sum)); // true
+let myObject = new myClass();
 
-// if you passed the function call it will be not a function in this situation
-console.log(Is.function(sum(2, 3))); // false
-```
-
-### Is.scalar
-
-Check if the given value is a `string`, `number` or `boolean`
-
-```ts
-console.log(Is.scalar('hello')); // true
-console.log(Is.scalar(22.5)); // true
-console.log(Is.scalar(false)); // true
-console.log(Is.scalar(null)); // false
-console.log(Is.scalar(undefined)); // false
-console.log(Is.scalar([])); // false
-console.log(Is.scalar({})); // false
+console.log(Is.iterable(myObject)); // true
 ```
 
 ### Is.empty
@@ -273,14 +388,60 @@ value = 0;
 console.log(Is.empty(value)); // false
 ```
 
-### Is.json
+## Functions And Generators
 
-Check if the given value string is a valid json format
+### Is.function
+
+Check if the given value is a function
 
 ```ts
-let value = '{"name":"Hasan","job":"Software Engineer"}';
-console.log(Is.json(value)); // true
+function sum(x, y) {
+    return x + y;
+}
+
+// you must pass the function name not the function call
+console.log(Is.function(sum)); // true
+
+// if you passed the function call it will be not a function in this situation
+console.log(Is.function(sum(2, 3))); // false
 ```
+
+> Is.callable is an alias for Is.function
+> Is.fn is an alias for Is.function
+
+### Is.generator
+
+Check if the given value is a generator
+
+```ts
+
+function* myGenerator() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+
+let myGeneratorObject = myGenerator();
+
+console.log(Is.generator(myGeneratorObject)); // true
+```
+
+### Is.native
+
+Check if the given value is a native javascript function
+
+```ts
+
+let myFunction = function() {
+    return 'hello world';
+};
+
+console.log(Is.native(myFunction)); // false
+
+console.log(Is.native(Math.random)); // true
+```
+
+## Misc
 
 ### Is.url
 
@@ -294,6 +455,8 @@ url = 'https://google.com';
 console.log(Is.url(url)); // true
 
 url = 'www.google.com';
+console.log(Is.url(url)); // true
+url = 'www.google.com:8080';
 console.log(Is.url(url)); // true
 
 url = 'www.google.com?q=hello+world';
@@ -312,14 +475,112 @@ let myEmail = 'hassanzohdy@gmail.com';
 console.log(Is.email(myEmail)); // true
 ```
 
-### Is.cookieEnabled
+### Is.date
 
-Check if cookies are enabled in the browser
+Check if the given value is a date
 
 ```ts
-if (! Is.cookeEnabled()) {
-    // Oops!, cookies are not enabled!
-}
+
+let myDate = new Date();
+
+console.log(Is.date(myDate)); // true
+```
+
+### Is.promise
+
+Check if the given value is a promise
+
+```ts
+
+let myPromise = new Promise((resolve, reject) => {
+    resolve('hello world');
+});
+
+console.log(Is.promise(myPromise)); // true
+```
+
+### Is.error
+
+Check if the given value is an error
+
+```ts
+let myError = new Error('my error');
+
+console.log(Is.error(myError)); // true
+```
+
+## DOM & Browser
+
+### Is.dom
+
+Check if the given value is a dom element
+
+> Dom Elements are objects of **HTMLElement**, so any html element will be validated as true, something like **document.body**
+> **document** and **window** are not validated as true as they are not part of the html elements
+
+```ts
+console.log(Is.dom(document)); // false
+
+console.log(Is.dom(document.body)); // true
+```
+
+### Is.form
+
+Check if the given value is a form element
+
+```ts
+
+let myForm = document.querySelector('form');
+
+console.log(Is.form(myForm)); // true
+```
+
+> Is.formElement is an alias for Is.form
+
+### Is.formData
+
+Check if the given value is a form data
+
+```ts
+let myFormData = new FormData();
+
+console.log(Is.formData(myFormData)); // true
+```
+
+### Is.browser
+
+Check if current browser matches the given name
+
+```ts
+console.log(Is.browser('chrome'));
+console.log(Is.browser('firefox'));
+console.log(Is.browser('safari'));
+console.log(Is.browser('opera'));
+console.log(Is.browser('edge'));
+console.log(Is.browser('ie'));
+```
+
+### Is.validHtmlId
+
+Check if the given value is a valid html id
+
+```ts
+
+let id = 'myId';
+
+console.log(Is.validHtmlId(id)); // true
+
+id = 'myId-1';
+
+console.log(Is.validHtmlId(id)); // true
+
+id = 'myId-1-1';
+
+console.log(Is.validHtmlId(id)); // true
+
+id = 'myId-1-';
+
+console.log(Is.validHtmlId(id)); // false
 ```
 
 ### Is.mobile.*
@@ -376,3 +637,56 @@ if (! Is.cookeEnabled()) {
     // Oops!, cookies are not enabled!
 }
 ```
+
+### Is.enabled.*
+
+Check for variant data that are enabled in the browser
+
+```ts
+console.log(Is.enabled.cookies());
+console.log(Is.enabled.localStorage());
+console.log(Is.enabled.sessionStorage());
+console.log(Is.enabled.indexedDB());
+console.log(Is.enabled.webWorkers()); 
+console.log(Is.enabled.serviceWorkers());
+console.log(Is.enabled.notifications());
+console.log(Is.enabled.pushNotifications());
+console.log(Is.enabled.geoLocation()); // also geolocation is an alias (with lower L)
+console.log(Is.enabled.webRTC());
+console.log(Is.enabled.webAudio()); 
+console.log(Is.enabled.microphone());
+console.log(Is.enabled.camera());
+console.log(Is.enabled.speechRecognition());
+console.log(Is.enabled.speechSynthesis());
+console.log(Is.enabled.fullScreen()); // also fullscreen is an alias (with lower S)
+console.log(Is.enabled.vibration());
+console.log(Is.enabled.touch());
+console.log(Is.enabled.battery());
+console.log(Is.enabled.fetch());
+console.log(Is.enabled.history());
+console.log(Is.enabled.darkMode());
+console.log(Is.enabled.lightMode());
+console.log(Is.enabled.animation());
+console.log(Is.enabled.transition());
+```
+
+## Tests
+
+To run tests, run the following command
+
+```bash
+npm run test
+```
+
+OR
+
+```bash
+yarn test
+```
+
+## Change Log
+
+- 1.0.7 (11 Oct 2022)
+  - Added tests
+  - Enhanced Documentation
+  - Added more methods
