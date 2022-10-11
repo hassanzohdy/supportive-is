@@ -633,8 +633,8 @@ Check if current visitor is browsing from a desktop device
 > Please note that any non mobile type will be considered as desktop.
 
 ```ts
-if (! Is.cookeEnabled()) {
-    // Oops!, cookies are not enabled!
+if (! Is.desktop()) {
+    // do something
 }
 ```
 
