@@ -1,6 +1,6 @@
 {
     "name": "@mongez/supportive-is",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "description": "A lightweight tool to check variable types and other logical checks",
     "main": "src/index.ts",
     "scripts": {

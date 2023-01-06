@@ -353,6 +353,46 @@ let myObject = new myClass();
 console.log(Is.iterable(myObject)); // true
 ```
 
+## Is.map
+
+Check if the given value is a map
+
+```ts
+let myMap = new Map();
+
+console.log(Is.map(myMap)); // true
+```
+
+## Is.set
+
+Check if the given value is a set
+
+```ts
+let mySet = new Set();
+
+console.log(Is.set(mySet)); // true
+```
+
+## Is.weakMap
+
+Check if the given value is a weak map
+
+```ts
+let myWeakMap = new WeakMap();
+
+console.log(Is.weakMap(myWeakMap)); // true
+```
+
+## Is.weakSet
+
+Check if the given value is a weak set
+
+```ts
+let myWeakSet = new WeakSet();
+
+console.log(Is.weakSet(myWeakSet)); // true
+```
+
 ### Is.empty
 
 Check if the given value is empty.
@@ -511,7 +551,7 @@ console.log(Is.error(myError)); // true
 
 ## DOM & Browser
 
-### Is.dom
+### Is.element
 
 Check if the given value is a dom element
 
@@ -519,10 +559,12 @@ Check if the given value is a dom element
 > **document** and **window** are not validated as true as they are not part of the html elements
 
 ```ts
-console.log(Is.dom(document)); // false
+console.log(Is.element(document)); // false
 
-console.log(Is.dom(document.body)); // true
+console.log(Is.element(document.body)); // true
 ```
+
+> Is.dom is an alias for Is.element
 
 ### Is.form
 

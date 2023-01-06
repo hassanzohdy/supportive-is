@@ -35,6 +35,31 @@ export const Is = {
    */
   int: (value: any) => typeof value === "number" && /^\d+$/.test(String(value)),
   /**
+   * @alias Is.int
+   */
+  integer: (value: any) =>
+    typeof value === "number" && /^\d+$/.test(String(value)),
+  /**
+   * Determine whether the given value is a big int
+   */
+  bigint: (value: any) => typeof value === "bigint",
+  /**
+   * Check if the given value is an instance of Map
+   */
+  map: (value: any) => value instanceof Map,
+  /**
+   * Check if the given value is an instance of Set
+   */
+  set: (value: any) => value instanceof Set,
+  /**
+   * Check if the given value is an instance of WeakMap
+   */
+  weakmap: (value: any) => value instanceof WeakMap,
+  /**
+   * Check if the given value is an instance of WeakSet
+   */
+  weakset: (value: any) => value instanceof WeakSet,
+  /**
    * Determine whether the given value is a float number and its data type is number
    */
   float: (value: any) =>
@@ -72,6 +97,64 @@ export const Is = {
    * Determine whether the given value is a dom element
    */
   dom: (value: any) => value instanceof HTMLElement,
+  /**
+   * determine if the given value is an instance of form element
+   */
+  formElement: (value: any) =>
+    typeof HTMLFormElement === "undefined"
+      ? false
+      : value instanceof HTMLFormElement,
+  /**
+   * @alias formElement
+   */
+  form: (value: any) =>
+    typeof HTMLFormElement === "undefined"
+      ? false
+      : value instanceof HTMLFormElement,
+  /**
+   * determine if the given value is an instance of form data
+   */
+  formData: (value: any) =>
+    typeof FormData === "undefined" ? false : value instanceof FormData,
+  /**
+   * Check if the given value is a form element either an input, textarea, select
+   */
+  input: (value: any) => {
+    if (typeof HTMLInputElement === "undefined") {
+      return false;
+    }
+
+    return (
+      value instanceof HTMLInputElement ||
+      value instanceof HTMLTextAreaElement ||
+      value instanceof HTMLSelectElement
+    );
+  },
+  /**
+   * @alias Is.dom
+   */
+  element: (value: any) => value instanceof HTMLElement,
+  /**
+   * Check if the given value is visible element in the window screen
+   */
+  visible: (value: any) => {
+    if (!Is.element(value)) return false;
+    return value.offsetWidth > 0 || value.offsetHeight > 0;
+  },
+  /**
+   * Check if the given value is hidden element
+   */
+  hidden: (value: any) => {
+    if (!Is.element(value)) return false;
+    return value.hidden;
+  },
+  /**
+   * Check if the given element is in the dom tree
+   */
+  inDom: (value: any) => {
+    if (!Is.element(value)) return false;
+    return document.body.contains(value);
+  },
   /**
    * Determine whither the given object is instance of the given class name
    * Please note that this method won't work with parent classes
@@ -167,13 +250,16 @@ export const Is = {
   empty(value: any) {
     if (Is.undefined(value) || Is.null(value)) return true;
 
+    if (Is.boolean(value)) return false;
+
     if (Is.string(value)) return value.length === 0;
+
+    // check for map and set
+    if (Is.map(value) || Is.set(value)) return value.size === 0;
 
     if (Is.iterable(value)) {
       return value.length === 0;
     }
-
-    if (Is.boolean(value)) return false;
 
     if (Is.object(value)) {
       return Object.keys(value).length === 0;
@@ -184,26 +270,6 @@ export const Is = {
 
     return true;
   },
-  /**
-   * determine if the given value is an instance of form element
-   */
-  formElement: (value: any) =>
-    typeof HTMLFormElement === "undefined"
-      ? false
-      : value instanceof HTMLFormElement,
-  /**
-   * @alias formElement
-   */
-  form: (value: any) =>
-    typeof HTMLFormElement === "undefined"
-      ? false
-      : value instanceof HTMLFormElement,
-
-  /**
-   * determine if the given value is an instance of form data
-   */
-  formData: (value: any) =>
-    typeof FormData === "undefined" ? false : value instanceof FormData,
   /**
    * Determine if the given value is an instance of Error
    */
@@ -251,6 +317,8 @@ export const Is = {
     microphone: () =>
       "mediaDevices" in navigator && "getUserMedia" in navigator,
     camera: () => "mediaDevices" in navigator && "getUserMedia" in navigator,
+    cam: () => "mediaDevices" in navigator && "getUserMedia" in navigator,
+    webcam: () => "mediaDevices" in navigator && "getUserMedia" in navigator,
     webRTC: () => "RTCPeerConnection" in window,
     webAudio: () => "AudioContext" in window,
     speechRecognition: () => "webkitSpeechRecognition" in window,
@@ -278,7 +346,7 @@ export const Is = {
     /**
      * Determine whether the current visitor is opening from an Android device
      */
-    android: () => Boolean(navigator.userAgent.match(/Android/i)) !== null,
+    android: () => navigator.userAgent.match(/Android/i) !== null,
     /**
      * Determine whether the current visitor is opening from an ios device
      */
@@ -352,6 +420,35 @@ export const Is = {
     };
 
     return browsersList[browser.toLowerCase()] === true;
+  },
+  chrome: () =>
+    !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime),
+  firefox: () => typeof window.InstallTrigger !== "undefined",
+  safari: () => {
+    const isSafari =
+      /constructor/i.test(window.HTMLElement) ||
+      ((p) => {
+        return p.toString() === "[object SafariRemoteNotification]";
+      })(
+        !window["safari"] ||
+          (typeof safari !== "undefined" && safari.pushNotification)
+      );
+    return isSafari;
+  },
+  opera: () => {
+    let isOpera =
+      (!!window.opr && !!opr.addons) ||
+      !!window.opera ||
+      navigator.userAgent.indexOf(" OPR/") >= 0;
+    return isOpera;
+  },
+  ie: () => !!document.documentMode,
+  edge: () => {
+    // Internet Explorer 6-11
+    const isIE = !!document.documentMode;
+
+    const isEdge = !isIE && !!window.StyleMedia;
+    return isEdge;
   },
 };
 
