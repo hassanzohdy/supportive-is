@@ -411,6 +411,10 @@ export const Is = {
     any: () => Is.mobile.android() || Is.mobile.ios() || Is.mobile.windows(),
   },
   /**
+   * Determine if current user is opening from  macOS
+   */
+  mac: () => navigator.userAgent.match(/mac/i) !== null,
+  /**
    * Determine whether the current visitor is opening from desktop
    */
   desktop: () => !Is.mobile.any(),
