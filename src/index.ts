@@ -26,19 +26,18 @@ export const isFloat = (value: any) =>
  * Check if the given value is a regex
  */
 export const isRegex = (value: any) =>
-  typeof value !== "undefined" && value.constructor.name === "RegExp";
+  value && value.constructor.name === "RegExp";
 
 /**
  * Check if the given value is an object
  */
-export const isObject = (value: any) =>
-  value !== null && typeof value === "object";
+export const isObject = (value: any) => value && typeof value === "object";
 
 /**
  * Check if the given value is a plain object
  */
 export const isPlainObject = (value: any) =>
-  value !== null && value.constructor.name === "Object";
+  value && value.constructor.name === "Object";
 
 /**
  * Check if the given value is validId
@@ -63,42 +62,37 @@ export const isFormData = (value: any) => value instanceof FormData;
  * Check if the given value is iterable
  */
 export const isIterable = (value: any) =>
-  value !== null && typeof value[Symbol.iterator] === "function";
+  value && typeof value[Symbol.iterator] === "function";
 
 /**
  * Check if the given value is a scalar value
  */
 export const isScalar = (value: any) =>
-  ["string", "boolean", "number", "symbol", "bigint", "null"].includes(
-    typeof value
-  ) || value === null;
+  ["string", "boolean", "number", "symbol", "bigint"].includes(typeof value);
 
 /**
  * Check if the given value is a pr value
  */
 export const isPrimitive = (value: any) =>
-  ["string", "boolean", "number", "bigint"].includes(typeof value) ||
-  value === null;
+  ["string", "boolean", "number", "bigint"].includes(typeof value);
 
 /**
  * Check if the given value is a promise
  */
 export const isPromise = (value: any) =>
-  value !== null &&
-  typeof value === "object" &&
-  typeof value.then === "function";
+  value && value.constructor.name === "Promise";
 
 /**
  * Check if the given value is a date
  */
 export const isDate = (value: any) =>
-  value !== null && typeof value === "object" && value.constructor === Date;
+  value && typeof value === "object" && value.constructor === Date;
 
 /**
  * Check if the given value is a generator
  */
 export const isGenerator = (value: any) =>
-  value !== null &&
+  value &&
   typeof value === "object" &&
   value.constructor.name === "GeneratorFunction";
 
