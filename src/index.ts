@@ -302,6 +302,11 @@ export const isEdge = () => {
 };
 
 /**
+ * Determine whether the current visitor is opening from desktop
+ */
+export const isDesktop = () => !isMobile.any();
+
+/**
  * A simple lightweight library to validate values against certain types of data
  * For full documentation on github
  * Repo: https://github.com/hassanzohdy/supportive-is
@@ -413,7 +418,7 @@ export const Is = {
   /**
    * Determine whether the current visitor is opening from desktop
    */
-  desktop: () => !isMobile.any(),
+  desktop: isDesktop,
   /**
    * Check if the current browser is the given name
    * To detect browser version as well, pass the version number as the second argument
