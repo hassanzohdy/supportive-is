@@ -103,6 +103,8 @@ export const isGenerator = (value: any) =>
  * Empty array is considered empty
  */
 export const isEmpty = (value: any) => {
+  if ([0, true, false].includes(value)) return false;
+
   if (value === undefined || value === null || value === "") return true;
 
   // check for map and set
