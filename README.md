@@ -78,6 +78,18 @@ let value = '{"name":"Hasan","job":"Software Engineer"}';
 console.log(isJson(value)); // true
 ```
 
+## Is String
+
+Check if the given value is a string
+
+```ts
+import { isString } from "@mongez/supportive-is";
+
+let myString = "hello world";
+
+console.log(isString(myString)); // true
+```
+
 ## Is numeric
 
 Check if the given value is a number whether if its data type is `String` or `Number`

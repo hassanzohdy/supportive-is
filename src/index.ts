@@ -71,6 +71,11 @@ export const isScalar = (value: any) =>
   ["string", "boolean", "number", "symbol", "bigint"].includes(typeof value);
 
 /**
+ * Check if the given value is a string
+ */
+export const isString = (value: any) => typeof value === "string";
+
+/**
  * Check if the given value is a pr value
  */
 export const isPrimitive = (value: any) =>
@@ -116,7 +121,7 @@ export const isEmpty = (value: any) => {
     return value.length === 0;
   }
 
-  if (isObject(value)) {
+  if (isPlainObject(value)) {
     return Object.keys(value).length === 0;
   }
 
@@ -130,6 +135,10 @@ export const isEmpty = (value: any) => {
  * Check if the given value is a valid json
  */
 export const isJson = (value: any) => {
+  if (!value || typeof value !== "string") return false;
+
+  if (!["[", "{"].includes(value?.[0])) return false;
+
   try {
     JSON.parse(value);
     return true;

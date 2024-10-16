@@ -1,33 +1,33 @@
-import Is from "../src";
+import Is, { isJson } from "../src";
 
-describe("@mongez/supportive-is/Is.json", () => {
+describe("@mongez/supportive-is/isJson", () => {
   it("should return true if the value is a valid JSON", () => {
-    expect(Is.json('{"name":"John"}')).toBe(true);
-    expect(Is.json('{"name":"John", "age": 30}')).toBe(true);
+    expect(isJson('{"name":"John"}')).toBe(true);
+    expect(isJson('{"name":"John", "age": 30}')).toBe(true);
     expect(
-      Is.json('{"name":"John", "age": 30, "cars": ["Ford", "BMW", "Fiat"]}')
+      isJson('{"name":"John", "age": 30, "cars": ["Ford", "BMW", "Fiat"]}')
     ).toBe(true);
     expect(
-      Is.json(
+      isJson(
         '{"name":"John", "age": 30, "cars": ["Ford", "BMW", "Fiat"], "children": {"name":"Mary", "age": 10}}'
       )
     ).toBe(true);
 
-    expect(Is.json("[1, 2, 3]")).toBe(true);
+    expect(isJson("[1, 2, 3]")).toBe(true);
   });
 
   it("should return false if the value is not a valid JSON", () => {
-    expect(Is.json("")).toBe(false);
-    expect(Is.json(12)).toBe(false);
-    expect(Is.json("12")).toBe(false);
-    expect(Is.json("John")).toBe(false);
+    expect(isJson("")).toBe(false);
+    expect(isJson(12)).toBe(false);
+    expect(isJson("12")).toBe(false);
+    expect(isJson("John")).toBe(false);
 
-    expect(Is.json(0)).toBe(false);
-    expect(Is.json({})).toBe(false);
-    expect(Is.json([])).toBe(false);
-    expect(Is.json(null)).toBe(false);
-    expect(Is.json(true)).toBe(false);
-    expect(Is.json(false)).toBe(false);
-    expect(Is.json(undefined)).toBe(false);
+    expect(isJson(0)).toBe(false);
+    expect(isJson({})).toBe(false);
+    expect(isJson([])).toBe(false);
+    expect(isJson(null)).toBe(false);
+    expect(isJson(true)).toBe(false);
+    expect(isJson(false)).toBe(false);
+    expect(isJson(undefined)).toBe(false);
   });
 });

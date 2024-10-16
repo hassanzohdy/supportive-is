@@ -1,21 +1,22 @@
-import Is from "./../src";
+import Is, { isEmpty } from "./../src";
 
-describe("@mongez/supportive-is/Is.empty", () => {
+describe("@mongez/supportive-is/isEmpty", () => {
   it("should be empty", () => {
-    expect(Is.empty("")).toBe(true);
-    expect(Is.empty([])).toBe(true);
-    expect(Is.empty(new Map())).toBe(true);
-    expect(Is.empty(new Set())).toBe(true);
-    expect(Is.empty({})).toBe(true);
-    expect(Is.empty(null)).toBe(true);
-    expect(Is.empty(undefined)).toBe(true);
+    expect(isEmpty("")).toBe(true);
+    expect(isEmpty([])).toBe(true);
+    expect(isEmpty(new Map())).toBe(true);
+    expect(isEmpty(new Set())).toBe(true);
+    expect(isEmpty(new Date())).toBe(true);
+    expect(isEmpty({})).toBe(true);
+    expect(isEmpty(null)).toBe(true);
+    expect(isEmpty(undefined)).toBe(true);
   });
 
   it("should not be empty", () => {
-    expect(Is.empty(0)).toBe(false);
-    expect(Is.empty(1)).toBe(false);
-    expect(Is.empty("0")).toBe(false);
-    expect(Is.empty(false)).toBe(false);
-    expect(Is.empty({ length: 0 })).toBe(false);
+    expect(isEmpty(0)).toBe(false);
+    expect(isEmpty(1)).toBe(false);
+    expect(isEmpty("0")).toBe(false);
+    expect(isEmpty(false)).toBe(false);
+    expect(isEmpty({ length: 0 })).toBe(false);
   });
 });
