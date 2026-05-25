@@ -1,0 +1,37 @@
+# @mongez/supportive-is
+
+> Tree-shakable type & shape predicates: `isString`, `isEmpty`, `isUrl`, `isPromise`, `isMobile`, … Every check is its own named export so bundlers can drop what you don't use. Zero runtime dependencies. The legacy `Is` namespace (`Is.empty(value)`) is preserved as the default export.
+
+This package is one of the older bricks in the `@mongez/*` family. It's deliberately tiny — only **shape** and **environment** predicates — and never reaches into general-purpose utilities (those live in [`@mongez/reinforcements`](https://github.com/hassanzohdy/reinforcements)).
+
+Every export ships from the package root.
+
+## Docs
+
+- [Overview](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/overview.md): Pitch, install, mental model, scope vs. siblings.
+- [README](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/README.md): Marketing-style index with categorized predicate tables.
+- [Changelog](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/CHANGELOG.md): Release notes plus a catalogue of known-but-deferred bugs.
+
+## Reference (by category)
+
+- [Primitives & numbers](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/primitives.md): `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, `isScalar`. Edge cases around `NaN`, scientific notation, and negative numbers.
+- [Collections & shape](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/collections.md): `isObject`, `isPlainObject`, `isIterable`, `isEmpty`, `Is.array`. Includes the smart-emptiness rules.
+- [Formats](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/formats.md): `isJson`, `isUrl`, `isEmail`, `isRegex`, `isValidId`. Each has its own quirks — read this card before you trust them as security gates.
+- [Objects](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/misc.md): `isPromise`, `isDate`, `isGenerator`, `isFormElement`, `isFormData`.
+- [Environment / browser](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/environment.md): `isMobile.*`, `isDesktop`, `isMac`, `isBrowser`, vendor-specific probes. SSR notes.
+
+## Recipes
+
+- [Recipes](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/recipes.md): Form validation, deep-merge guards, mobile-aware UI, the `isEmpty`-driven nullable handler.
+
+## Quick rules
+
+1. **One predicate = one named import**. Don't import `Is` as a side-effect — bundlers can't strip what you don't tree-shake.
+2. **No runtime dependencies**. Every predicate is one short function. If you need date math, regex composition, or schema validation, use the right tool — not this package.
+3. **DOM predicates run lazily**. Importing `isMobile` on the server is safe; calling `isMobile.android()` on the server throws because `navigator` isn't defined.
+4. **Known bugs are documented, not hidden**. See the CHANGELOG for line-by-line references and the corresponding `.skip()`-ed tests in `src/__tests__/`. Don't trust `isEmpty({a:1})`, `isInt(-1)`, `isFloat(-1.5)`, `isNumeric` repeated calls, or `isSafari` without reading the card.
+
+## Optional
+
+- [Full single-file reference (llms-full.txt)](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/llms-full.txt): All reference content concatenated.
+- [GitHub repository](https://github.com/hassanzohdy/supportive-is): Source code, issues, releases.

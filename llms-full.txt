@@ -1,0 +1,580 @@
+# @mongez/supportive-is — full reference
+
+> Tree-shakable type & shape predicates. This is the concatenated reference; load `llms.txt` for the structured index instead.
+
+## Install
+
+```sh
+yarn add @mongez/supportive-is
+```
+
+## Public exports
+
+```ts
+import {
+  // Primitives & numbers
+  isString,
+  isNumeric,
+  isInt,
+  isFloat,
+  isPrimitive,
+  isScalar,
+
+  // Collections & shape
+  isObject,
+  isPlainObject,
+  isIterable,
+  isEmpty,
+
+  // Formats
+  isRegex,
+  isValidId,
+  isJson,
+  isUrl,
+  isEmail,
+
+  // Object kinds
+  isPromise,
+  isDate,
+  isGenerator,
+  isFormElement,
+  isFormData,
+
+  // Environment
+  isMobile,
+  isDesktop,
+  isMac,
+  isBrowser,
+  isChrome,
+  isFirefox,
+  isSafari,
+  isOpera,
+  isIE,
+  isEdge,
+
+  // Legacy default export
+  Is,
+} from "@mongez/supportive-is";
+
+import Is from "@mongez/supportive-is";  // alternative legacy import
+```
+
+## Primitives & numbers
+
+### `isString(value)`
+
+`typeof value === "string"`. Returns `false` for `new String("x")` (which is `typeof "object"`).
+
+```ts
+isString("");               // true
+isString("hello");          // true
+isString(`x${1}`);          // true
+isString(new String("x"));  // false  (wrapper object)
+isString(null);             // false
+isString(undefined);        // false
+```
+
+### `isNumeric(value)`
+
+Numeric-like check that accepts numbers and numeric strings. Matches sign, decimals, and scientific notation.
+
+```ts
+isNumeric(0);          // true
+isNumeric(-1.5);       // true
+isNumeric("12");       // true
+isNumeric("+1");       // true
+isNumeric("1.5E-3");   // true
+
+isNumeric("");         // false
+isNumeric("1.");       // false
+isNumeric("12abc");    // false
+isNumeric(null);       // false
+isNumeric(undefined);  // false
+```
+
+> **BUG (`src/index.ts:10`)**: the regex carries the `/g` flag. `RegExp.prototype.test` advances `lastIndex` between calls, so repeated calls on the same input alternate `true` / `false`. Remove the `g` flag or reset `lastIndex` per call.
+
+### `isInt(value)`
+
+Integer number. Requires `typeof value === "number"`.
+
+```ts
+isInt(0);                          // true
+isInt(1);                          // true
+isInt(1.0);                        // true   (stringifies to "1")
+isInt(Number.MAX_SAFE_INTEGER);    // true
+
+isInt(1.5);                        // false
+isInt("2");                        // false
+isInt(NaN);                        // false
+isInt(Infinity);                   // false
+```
+
+> **BUGS (`src/index.ts:17`)**:
+> - Rejects negative integers — regex `/^\d+$/` has no sign branch (`isInt(-1)` returns `false`).
+> - Rejects integers that stringify in scientific notation — `String(1e21) === "1e+21"` doesn't match `/^\d+$/`.
+
+### `isFloat(value)`
+
+Floating-point number with a fractional part.
+
+```ts
+isFloat(1.5);     // true
+isFloat(0.1);     // true
+
+isFloat(1);       // false
+isFloat(1.0);     // false  (stringifies to "1" — no decimal)
+isFloat("1.5");   // false  (must be a number, not a string)
+isFloat(NaN);     // false
+isFloat(Infinity);// false
+```
+
+> **BUGS (`src/index.ts:23`)**:
+> - Rejects negative floats (`isFloat(-1.5) === false`).
+> - Uses an unescaped `.` in the regex (`/^\d+.(\d+)$/`). Can't be exploited via stringified numbers, but the regex is wrong.
+
+### `isPrimitive(value)`
+
+`string` / `number` / `boolean` / `bigint`. Excludes `Symbol`, `null`, and `undefined`.
+
+```ts
+isPrimitive("hello");      // true
+isPrimitive(22.5);         // true
+isPrimitive(false);        // true
+isPrimitive(1n);           // true
+
+isPrimitive(null);         // false
+isPrimitive(undefined);    // false
+isPrimitive(Symbol("s"));  // false   (intentional — use isScalar)
+isPrimitive([]);           // false
+```
+
+### `isScalar(value)`
+
+`string` / `number` / `boolean` / `bigint` / `symbol`.
+
+```ts
+isScalar("hello");      // true
+isScalar(22.5);         // true
+isScalar(false);        // true
+isScalar(Symbol("s"));  // true
+isScalar(1n);           // true
+
+isScalar(null);         // false
+isScalar(undefined);    // false
+isScalar([]);           // false
+isScalar({});           // false
+```
+
+## Collections & shape
+
+### `isObject(value)`
+
+Truthy AND `typeof value === "object"`. Includes arrays, dates, regexes, and class instances. Excludes `null` and functions.
+
+```ts
+isObject({});            // true
+isObject([]);            // true
+isObject(new Date());    // true
+isObject(/x/);           // true
+
+isObject(null);          // falsy (returns null — see "Non-boolean falsy returns")
+isObject(undefined);     // falsy (returns undefined)
+isObject(0);             // falsy (returns 0)
+isObject("");            // falsy (returns "")
+isObject("hello");       // false
+isObject(() => {});      // false
+```
+
+To check "object but not array": `isObject(x) && !Array.isArray(x)`.
+
+### `isPlainObject(value)`
+
+`value.constructor.name === "Object"`. Returns `true` only for `{}` and `new Object()`.
+
+```ts
+isPlainObject({});           // true
+isPlainObject({ a: 1 });     // true
+isPlainObject(new Object()); // true
+
+isPlainObject([]);           // false
+isPlainObject(new Date());   // false
+isPlainObject(new class {}); // false
+```
+
+> **BUG (`src/index.ts:39`)**: throws on `Object.create(null)` because `value.constructor` is `undefined`. Add an optional chain.
+
+### `Is.array(value)`
+
+Alias for `Array.isArray`.
+
+```ts
+Is.array([]);            // true
+Is.array([1, 2, 3]);     // true
+
+Is.array(new Set());     // false
+Is.array({ length: 0 }); // false
+Is.array(null);          // false
+```
+
+### `isIterable(value)`
+
+Implements `Symbol.iterator`.
+
+```ts
+isIterable([]);              // true
+isIterable("hello");         // true
+isIterable(new Set());       // true
+isIterable(new Map());       // true
+isIterable({ *[Symbol.iterator]() { yield 1; } }); // true
+
+isIterable({});              // falsy
+isIterable(null);            // falsy
+isIterable(123);             // falsy
+```
+
+> **BUG (`src/index.ts:64`)**: returns the empty string instead of `true` for `""` — `value && …` short-circuits on the falsy empty string. The empty string IS iterable (just yields nothing).
+
+### `isEmpty(value)`
+
+Smart emptiness check. Branches:
+
+1. `0`, `true`, `false` → `false` (real values).
+2. `""`, `null`, `undefined` → `true`.
+3. `Map` or `Set` → `size === 0`.
+4. Iterable → `length === 0`.
+5. Numeric (`isNumeric`) → `false`.
+6. Otherwise → `true`.
+
+```ts
+isEmpty("");          // true
+isEmpty([]);          // true
+isEmpty({});          // true
+isEmpty(new Map());   // true
+isEmpty(new Set());   // true
+isEmpty(null);        // true
+isEmpty(undefined);   // true
+
+isEmpty(0);           // false  (zero is a real value)
+isEmpty(false);       // false
+isEmpty("0");         // false
+isEmpty(" ");         // false
+isEmpty([0]);         // false
+isEmpty(1);           // false
+```
+
+> **BUGS (`src/index.ts:110`)**:
+> - `isEmpty({ a: 1 })` returns `true` (no `Object.keys.length` fallback).
+> - `isEmpty(new Date())` returns `true` (Date has no iterator and isn't numeric).
+> - `isEmpty(NaN)` returns `true` (NaN doesn't match the numeric regex).
+
+## Formats
+
+### `isRegex(value)`
+
+Constructor-name check (`"RegExp"`).
+
+```ts
+isRegex(/x/);             // true
+isRegex(new RegExp("x")); // true
+
+isRegex("/x/");           // false
+isRegex(null);            // falsy
+```
+
+### `isValidId(value)` / `Is.validHtmlId`
+
+Valid HTML `id` (matches `/^[A-Za-z]+[\w\-:.]*$/`). Wrapped in `Boolean(...)` so falsy inputs return real `false`.
+
+```ts
+isValidId("base-id");      // true
+isValidId("has.dots");     // true
+isValidId("has:colon");    // true
+isValidId("has_underscore"); // true
+
+isValidId("1starts-with-digit");    // false
+isValidId("_starts-with-underscore"); // false
+isValidId("has,comma");             // false
+isValidId(null);                    // false
+isValidId(undefined);               // false
+```
+
+### `isJson(value)`
+
+Valid JSON string starting with `{` or `[`.
+
+```ts
+isJson('{"name":"John"}');     // true
+isJson("[1,2,3]");             // true
+isJson('{"nested":{"a":1}}');  // true
+
+isJson("");        // false
+isJson("12");      // false  (numeric JSON, but prefix check rejects)
+isJson('"hello"'); // false  (string JSON, same reason)
+isJson("null");    // false
+isJson("{name:1}");// false  (unquoted key)
+isJson(null);      // false
+isJson({});        // false  (not a string)
+```
+
+### `isUrl(value)`
+
+Valid `http://` / `https://` URL with a dotted hostname.
+
+```ts
+isUrl("https://google.com");           // true
+isUrl("http://www.example.com:8080");  // true
+isUrl("https://sub.example.co.uk");    // true
+
+isUrl("google.com");          // false  (no scheme)
+isUrl("ftp://example.com");   // false  (wrong scheme)
+isUrl("file:///etc/passwd");  // false
+isUrl("");                    // false
+isUrl(null);                  // false
+isUrl(undefined);             // false
+```
+
+> **BUGS (`src/index.ts:149`)**:
+> - `isUrl("https://google.")` returns `true` — the hostname check (`length > indexOf(".")`) doesn't require a non-empty TLD label.
+> - `isUrl("https://google..com")` returns `true` — empty labels aren't rejected.
+
+### `isEmail(value)`
+
+Standard email regex.
+
+```ts
+isEmail("user@example.com");        // true
+isEmail("a.b.c@example.co.uk");     // true
+isEmail("u+tag@example.com");       // true
+
+isEmail("user@");                   // false
+isEmail("@example.com");            // false
+isEmail("a@b");                     // false   (no TLD)
+isEmail("");                        // false
+isEmail(null);                      // false   (regex coerces to "null")
+isEmail(undefined);                 // false
+```
+
+> **BUG (`src/index.ts:168`)**: matches single-element arrays (`isEmail(["x@y.com"]) === true`) because `RegExp.prototype.test` coerces with `String()` and `["x@y.com"].toString() === "x@y.com"`. Gate with `typeof value === "string"`.
+
+## Object kinds
+
+### `isPromise(value)`
+
+Native `Promise` instance (constructor-name check).
+
+```ts
+isPromise(Promise.resolve());     // true
+isPromise(new Promise((r) => r(1))); // true
+
+isPromise({ then() {} });         // false  (thenable, not Promise)
+isPromise(123);                   // false
+isPromise(null);                  // falsy
+```
+
+> **BUG (`src/index.ts:87`)**: doesn't recognize subclasses (`class MyPromise extends Promise`). Use `value instanceof Promise` for a proper check.
+
+### `isDate(value)`
+
+`Date` instance (any constructor result, including invalid Dates).
+
+```ts
+isDate(new Date());            // true
+isDate(new Date(0));           // true
+isDate(new Date("not real"));  // true   (invalid, but still a Date)
+
+isDate("2024-01-01");          // false  (string)
+isDate(Date.now());            // false  (number)
+isDate(null);                  // falsy
+```
+
+### `isGenerator(value)`
+
+Constructor-name check (`"GeneratorFunction"`).
+
+```ts
+function* gen() { yield 1; }
+
+isGenerator(gen);          // depends on the runtime — see BUG below
+isGenerator(gen());        // false in V8 (see BUG)
+
+isGenerator({});           // false
+isGenerator(() => {});     // false
+```
+
+> **BUG (`src/index.ts:99`)**: generator INSTANCES (the result of invoking a generator function) report `constructor.name === ""` in V8 — not `"GeneratorFunction"`. The canonical detection is `Object.prototype.toString.call(value) === "[object Generator]"`.
+
+### `isFormElement(value)` / `Is.form`
+
+`HTMLFormElement` instance. Guards on `typeof HTMLFormElement === "undefined"` so it doesn't crash on the server when the global isn't defined.
+
+```ts
+isFormElement(document.createElement("form"));  // true
+isFormElement(document.createElement("div"));   // false
+isFormElement({});                              // false
+```
+
+### `isFormData(value)`
+
+`FormData` instance.
+
+```ts
+isFormData(new FormData());  // true
+isFormData({});              // false
+```
+
+## Environment / DOM
+
+All of the below probe `navigator`, `window`, or `document` at **call time**. Importing them on the server is safe; invoking them on the server throws.
+
+### `isMobile.android()` / `.ios()` / `.iphone()` / `.ipad()` / `.ipod()` / `.windows()`
+
+User-agent regex matches.
+
+```ts
+isMobile.android();  // /Android/i
+isMobile.ios();      // /iPhone|iPad|iPod/i
+isMobile.iphone();   // /iPhone/i
+isMobile.ipad();     // /iPad/i
+isMobile.ipod();     // /iPod/i
+isMobile.windows();  // /IEMobile/i
+```
+
+### `isMobile.any()`
+
+Logical OR of `.android()`, `.ios()`, `.windows()`. _Note: this method routes through the `Is.mobile` namespace, so the lazy reference depends on module initialization order._
+
+### `isMac()` / `isDesktop()`
+
+```ts
+isMac();      // /mac/i on navigator.userAgent
+isDesktop();  // !isMobile.any()
+```
+
+### `isBrowser(name)`
+
+Single entry point — `"chrome" | "safari" | "firefox" | "opera" | "edge" | "ie"`. Case-insensitive on the vendor name.
+
+### `isChrome()` / `isFirefox()` / `isSafari()` / `isOpera()` / `isIE()` / `isEdge()`
+
+Vendor-specific feature probes. Each reads a different bespoke property:
+
+- `isChrome` → `window.chrome.webstore || window.chrome.runtime`
+- `isFirefox` → `window.InstallTrigger`
+- `isSafari` → `/constructor/i.test(window.HTMLElement)` (**see BUG**)
+- `isOpera` → `window.opr.addons || window.opera || /OPR\//.test(navigator.userAgent)`
+- `isIE` → `document.documentMode`
+- `isEdge` → `!document.documentMode && window.StyleMedia`
+
+> **BUG (`src/index.ts:273`)**: `isSafari` false-positives on any host whose `HTMLElement.toString()` contains "constructor" (most class-based DOM polyfills, including happy-dom and JSDOM). Replace with a userAgent-based check.
+
+> **BUG (`src/index.ts:288`)**: `isOpera` references bare `opr` (not `window.opr`). In strict mode this is a `ReferenceError` when `opr` is undefined.
+
+## The legacy `Is` namespace
+
+```ts
+import Is from "@mongez/supportive-is";
+
+Is.string(x);        // → isString
+Is.numeric(x);       // → isNumeric
+Is.int(x);
+Is.float(x);
+Is.regex(x);
+Is.object(x);
+Is.plainObject(x);
+Is.array(x);         // Array.isArray
+Is.validHtmlId(x);   // → isValidId
+Is.formElement(x);   // → isFormElement
+Is.form(x);          // alias of formElement
+Is.formData(x);
+Is.iterable(x);
+Is.scalar(x);
+Is.primitive(x);
+Is.promise(x);
+Is.date(x);
+Is.generator(x);
+Is.empty(x);
+Is.json(x);
+Is.url(x);
+Is.email(x);
+Is.mobile.android();
+Is.mac();
+Is.desktop();
+Is.browser("chrome");
+Is.chrome();
+Is.firefox();
+Is.safari();
+Is.opera();
+Is.ie();
+Is.edge();
+```
+
+Every property is the same function as the corresponding named export.
+
+## Non-boolean falsy returns
+
+Predicates implemented as `value && typeof value === "x"` (or similar) return the raw falsy operand instead of `false` for inputs like `null`, `undefined`, `0`, `""`. In a Boolean context (`if`, `&&`, `||`) this is indistinguishable; in `===` comparisons it isn't:
+
+```ts
+isObject(null) === false;  // false  (returns null, not false)
+Boolean(isObject(null));   // false
+isObject(null) == false;   // true   (loose comparison)
+```
+
+Affected predicates: `isObject`, `isRegex`, `isPlainObject`, `isPromise`, `isDate`, `isGenerator`, `isIterable`. (`isValidId` is the exception — it wraps in `Boolean(...)`.) If you need a real boolean, wrap the call: `Boolean(isObject(x))`.
+
+## What this package does NOT do
+
+- General-purpose object/string/array helpers → [`@mongez/reinforcements`](https://github.com/hassanzohdy/reinforcements)
+- Schema validation (`z.string().email()`) → use `zod` or `valibot`
+- Date manipulation → use `dayjs`, `date-fns`, or `Temporal`
+- HTML sanitization → use `DOMPurify`
+- Server-side user-agent parsing → parse the request header yourself
+
+## Patterns
+
+### A form validator
+
+```ts
+import { isEmpty, isEmail, isUrl } from "@mongez/supportive-is";
+
+function validate(form: { email?: string; website?: string }) {
+  const errors: Record<string, string> = {};
+  if (isEmpty(form.email)) errors.email = "Email is required";
+  else if (!isEmail(form.email!)) errors.email = "Email is invalid";
+  if (form.website && !isUrl(form.website)) errors.website = "Website must be a full http(s) URL";
+  return errors;
+}
+```
+
+### A deep-merge that respects class instances
+
+```ts
+import { isPlainObject } from "@mongez/supportive-is";
+
+function deepMerge<T extends object>(target: T, source: Partial<T>): T {
+  for (const key of Object.keys(source) as (keyof T)[]) {
+    const v = source[key];
+    if (isPlainObject(v) && isPlainObject(target[key])) {
+      target[key] = deepMerge(target[key] as object, v as object) as T[keyof T];
+    } else {
+      target[key] = v as T[keyof T];
+    }
+  }
+  return target;
+}
+```
+
+### A nullable normalizer
+
+```ts
+import { isEmpty } from "@mongez/supportive-is";
+
+function pickNotEmpty<T extends Record<string, unknown>>(input: T): Partial<T> {
+  const out: Partial<T> = {};
+  for (const k of Object.keys(input) as (keyof T)[]) {
+    if (!isEmpty(input[k])) out[k] = input[k];
+  }
+  return out;
+}
+```

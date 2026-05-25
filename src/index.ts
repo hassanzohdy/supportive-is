@@ -1,43 +1,48 @@
-declare let opr: any;
 declare let window: any;
 declare let document: any;
-declare let safari: any;
 
 /**
  * Determine whether the given value is a number whatever if its data type is String or Number
  */
-export function isNumeric(value: any) {
-  return /^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/g.test(String(value));
+export function isNumeric(value: any): boolean {
+  return /^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/.test(String(value));
 }
 
 /**
  * Check if the given value is int
  */
-export const isInt = (value: any) =>
-  typeof value === "number" && /^\d+$/.test(String(value));
+export const isInt = (value: any): boolean =>
+  typeof value === "number" && Number.isInteger(value);
 
 /**
  * Check if the given value is float
  */
-export const isFloat = (value: any) =>
-  typeof value === "number" && /^\d+.(\d+)$/.test(String(value));
+export const isFloat = (value: any): boolean =>
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  /^-?\d+\.\d+$/.test(String(value));
 
 /**
  * Check if the given value is a regex
  */
-export const isRegex = (value: any) =>
-  value && value.constructor.name === "RegExp";
+export const isRegex = (value: any): boolean =>
+  Boolean(value) && value.constructor?.name === "RegExp";
 
 /**
  * Check if the given value is an object
  */
-export const isObject = (value: any) => value && typeof value === "object";
+export const isObject = (value: any): boolean =>
+  Boolean(value) && typeof value === "object";
 
 /**
  * Check if the given value is a plain object
  */
-export const isPlainObject = (value: any) =>
-  value && value.constructor.name === "Object";
+export const isPlainObject = (value: any): boolean => {
+  if (!value || typeof value !== "object") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  return value.constructor?.name === "Object";
+};
 
 /**
  * Check if the given value is validId
@@ -61,8 +66,10 @@ export const isFormData = (value: any) => value instanceof FormData;
 /**
  * Check if the given value is iterable
  */
-export const isIterable = (value: any) =>
-  value && typeof value[Symbol.iterator] === "function";
+export const isIterable = (value: any): boolean =>
+  value !== null &&
+  value !== undefined &&
+  typeof (value as any)[Symbol.iterator] === "function";
 
 /**
  * Check if the given value is a scalar value
@@ -84,22 +91,24 @@ export const isPrimitive = (value: any) =>
 /**
  * Check if the given value is a promise
  */
-export const isPromise = (value: any) =>
-  value && value.constructor.name === "Promise";
+export const isPromise = (value: any): boolean =>
+  Boolean(value) && value instanceof Promise;
 
 /**
  * Check if the given value is a date
  */
-export const isDate = (value: any) =>
-  value && typeof value === "object" && value.constructor === Date;
+export const isDate = (value: any): boolean =>
+  Boolean(value) && typeof value === "object" && value instanceof Date;
 
 /**
  * Check if the given value is a generator
  */
-export const isGenerator = (value: any) =>
-  value &&
+export const isGenerator = (value: any): boolean =>
+  Boolean(value) &&
   typeof value === "object" &&
-  value.constructor.name === "GeneratorFunction";
+  typeof (value as any).next === "function" &&
+  typeof (value as any)[Symbol.iterator] === "function" &&
+  (value as any)[Symbol.iterator]() === value;
 
 /**
  * Check if the given value is empty
@@ -107,22 +116,33 @@ export const isGenerator = (value: any) =>
  * Empty object is considered empty
  * Empty array is considered empty
  */
-export const isEmpty = (value: any) => {
+export const isEmpty = (value: any): boolean => {
   if ([0, true, false].includes(value)) return false;
 
-  if (value === undefined || value === null || value === "") return true;
+  if (["", null, undefined].includes(value)) return true;
+
+  // NaN: treat as non-empty (it is still a number value)
+  if (typeof value === "number" && Number.isNaN(value)) return false;
+
+  // Date instances: a constructed Date is not empty
+  if (value instanceof Date) return false;
 
   // check for map and set
   if (value instanceof Map || value instanceof Set) {
     return value.size === 0;
   }
 
-  if (isIterable(value)) {
-    return value.length === 0;
+  // Plain objects (no Symbol.iterator) — compare by own-key count
+  if (
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    typeof value[Symbol.iterator] !== "function"
+  ) {
+    return Object.keys(value).length === 0;
   }
 
-  if (isPlainObject(value)) {
-    return Object.keys(value).length === 0;
+  if (isIterable(value)) {
+    return value.length === 0;
   }
 
   // this is used here for zero
@@ -150,9 +170,17 @@ export const isJson = (value: any) => {
 /**
  * Check if the given value is valid url
  */
-export const isUrl = (value: any) => {
+export const isUrl = (value: any): boolean => {
+  if (!value || typeof value !== "string") return false;
+
   try {
-    new URL(value);
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return false;
+    const hostname = url.hostname;
+    if (!hostname.includes(".")) return false;
+    // Reject empty labels (e.g. "google..com", "google.", ".com")
+    const labels = hostname.split(".");
+    if (labels.some((label) => label.length === 0)) return false;
     return true;
   } catch (e) {
     return false;
@@ -162,7 +190,8 @@ export const isUrl = (value: any) => {
 /**
  * Check if the given value is a valid email
  */
-export const isEmail = (value: any) =>
+export const isEmail = (value: any): boolean =>
+  typeof value === "string" &&
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
     value
   );
@@ -198,7 +227,7 @@ export const isMobile = {
   /**
    * Determine whether the current visitor is opening from mobile whatever its type
    */
-  any: () => Is.mobile.android() || Is.mobile.ios() || Is.mobile.windows(),
+  any: () => isMobile.android() || isMobile.ios() || isMobile.windows(),
 };
 
 /**
@@ -211,43 +240,14 @@ export const isMac = () => navigator.userAgent.match(/mac/i) !== null;
  */
 export const isBrowser = (
   browser: "chrome" | "safari" | "firefox" | "opera" | "edge" | "ie"
-) => {
-  // Opera 8.0+
-  let isOpera =
-    (!!window.opr && !!opr.addons) ||
-    !!window.opera ||
-    navigator.userAgent.indexOf(" OPR/") >= 0;
-
-  // Firefox 1.0+
-  const isFirefox = typeof window.InstallTrigger !== "undefined";
-
-  // Safari 3.0+ "[object HTMLElementConstructor]"
-  const isSafari =
-    /constructor/i.test(window.HTMLElement) ||
-    ((p) => {
-      return p.toString() === "[object SafariRemoteNotification]";
-    })(
-      !window["safari"] ||
-        (typeof safari !== "undefined" && safari.pushNotification)
-    );
-
-  // Internet Explorer 6-11
-  const isIE = !!document.documentMode;
-
-  // Edge 20+
-  const isEdge = !isIE && !!window.StyleMedia;
-
-  // Chrome 1 - 71
-  const isChrome =
-    !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
-
+): boolean => {
   const browsersList: { [key: string]: boolean } = {
-    chrome: isChrome,
-    firefox: isFirefox,
-    opera: isOpera,
-    edge: isEdge,
-    ie: isIE,
-    safari: isSafari,
+    chrome: isChrome(),
+    firefox: isFirefox(),
+    opera: isOpera(),
+    edge: isEdge(),
+    ie: isIE(),
+    safari: isSafari(),
   };
 
   return browsersList[browser.toLowerCase()] === true;
@@ -267,27 +267,29 @@ export const isFirefox = () => typeof window.InstallTrigger !== "undefined";
 /**
  * Check if current browser is safari
  */
-export const isSafari = () => {
-  const isSafari =
-    /constructor/i.test(window.HTMLElement) ||
-    ((p) => {
-      return p.toString() === "[object SafariRemoteNotification]";
-    })(
-      !window["safari"] ||
-        (typeof safari !== "undefined" && safari.pushNotification)
-    );
-  return isSafari;
+export const isSafari = (): boolean => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  // Real Safari contains "Safari" and does NOT contain "Chrome", "Chromium",
+  // "Edg", "OPR", or "Android" (the Android System WebView is Chromium).
+  return (
+    /Safari/i.test(ua) &&
+    !/Chrome|Chromium|Edg|OPR|Android/i.test(ua)
+  );
 };
 
 /**
  * Check if current browser is opera
  */
-export const isOpera = () => {
-  let isOpera =
-    (!!window.opr && !!opr.addons) ||
-    !!window.opera ||
-    navigator.userAgent.indexOf(" OPR/") >= 0;
-  return isOpera;
+export const isOpera = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const w = window as any;
+  return (
+    (!!w.opr && !!w.opr.addons) ||
+    !!w.opera ||
+    (typeof navigator !== "undefined" &&
+      navigator.userAgent.indexOf(" OPR/") >= 0)
+  );
 };
 
 /**
