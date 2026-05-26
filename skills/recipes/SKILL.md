@@ -77,8 +77,6 @@ pickNotEmpty({ a: "x", b: "", c: null, d: 0 });
 // { a: "x", d: 0 }   — note that 0 is kept (it's not empty)
 ```
 
-> Heads up: `isEmpty({ a: 1 })` returns `true` due to a known bug — see [`collections.md`](./collections.md#isempty) for the workaround if your input can contain plain-object values.
-
 ## Mobile-aware UI without a state library
 
 ```ts
@@ -128,8 +126,6 @@ function safeUrl(input: string): URL | null {
 const u = safeUrl("https://example.com/page?q=1");
 u?.searchParams.get("q");  // "1"
 ```
-
-> Heads up: `isUrl("https://google.")` returns `true` due to a known bug. If your input is untrusted, add a TLD-segment check after the URL constructor — see [`formats.md`](./formats.md#isurl).
 
 ## Polymorphic API — string or regex
 

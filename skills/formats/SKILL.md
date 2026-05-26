@@ -27,7 +27,7 @@ isRegex(new RegExp("x"));      // true
 
 isRegex("/x/");                // false  (string, not RegExp)
 isRegex("x");                  // false
-isRegex(null);                 // null   (falsy non-boolean)
+isRegex(null);                 // false
 ```
 
 Useful for "did the caller pass a regex or a string" branches:
@@ -87,7 +87,7 @@ Worth knowing the prefix gate exists: `JSON.parse("12")` would succeed but `isJs
 Tries to construct `new URL(value)`, then checks:
 1. Protocol is `http:` or `https:` (no FTP, file, data, etc.)
 2. Hostname contains a `.`
-3. Hostname length > position of the first `.`
+3. Every dot-separated label of the hostname is non-empty (rejects `google.`, `..com`, `google..com`)
 
 ```ts
 isUrl("https://google.com");          // true
@@ -100,17 +100,13 @@ isUrl("www.google.com");              // false
 isUrl("ftp://example.com");           // false  (wrong scheme)
 isUrl("file:///etc/passwd");          // false
 isUrl("javascript:alert(1)");         // false
+isUrl("https://google.");             // false  (trailing-dot hostname)
+isUrl("https://google..com");         // false  (empty middle label)
 isUrl("");                            // false
 isUrl(null);                          // false
 isUrl(undefined);                     // false
 isUrl(12);                            // false
 ```
-
-> **BUGS (`src/index.ts:149`)**:
-> - `isUrl("https://google.")` returns `true`. The URL parser accepts it, and the hostname check (`length > indexOf(".")`) doesn't require a non-empty TLD label.
-> - `isUrl("https://google..com")` returns `true`. Empty labels in the middle aren't caught.
->
-> If you're using `isUrl` to decide whether to render a link, this is mostly OK. If you're using it to validate untrusted input, **add another check**: `url.hostname.split(".").every(part => part.length > 0)` after `new URL(value)`.
 
 ## `isEmail`
 
@@ -128,12 +124,11 @@ isEmail("@example.com");           // false
 isEmail("a@b");                    // false   (no TLD with ≥ 2 letters)
 isEmail("a b@example.com");        // false
 isEmail("");                       // false
-isEmail(null);                     // false   (regex coerces non-strings to false)
+isEmail(null);                     // false   (typeof-string guard)
 isEmail(undefined);                // false
 isEmail(12);                       // false
+isEmail(["user@example.com"]);     // false   (arrays are rejected by the typeof guard)
 ```
-
-> **BUG (`src/index.ts:168`)**: matches single-element arrays. `RegExp.prototype.test` coerces with `String()` and `["x@y.com"].toString() === "x@y.com"`. So `isEmail(["x@y.com"]) === true`. If your input could be an array (e.g. a query-string parser that returns `string | string[]`), gate it yourself: `typeof v === "string" && isEmail(v)`.
 
 ## Notes
 

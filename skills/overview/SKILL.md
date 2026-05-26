@@ -45,7 +45,6 @@ Both `import { isEmpty } from "@mongez/supportive-is"` and `import Is from "@mon
 | **`Is` namespace** | A bag of references to the same functions, kept for v1 compatibility. |
 | **Environment probes** | Touch `navigator`/`window`/`document` at call time. Server-safe to import, server-unsafe to call. |
 | **"Smart" emptiness** | `isEmpty` collapses null / undefined / "" / [] / {} / `new Map()` / `new Set()` into one check, with `0` and `false` deliberately not empty. |
-| **Known bugs** | Documented in the CHANGELOG and skipped tests. Don't fix by patching call sites — fix the source and un-skip the test. |
 
 ## Scope boundaries
 

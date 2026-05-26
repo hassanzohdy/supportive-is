@@ -30,10 +30,10 @@ isObject(/x/);           // true
 class C {}
 isObject(new C());       // true
 
-isObject(null);          // null    (falsy non-boolean — see below)
-isObject(undefined);     // undefined
-isObject(0);             // 0
-isObject("");            // ""
+isObject(null);          // false
+isObject(undefined);     // false
+isObject(0);             // false
+isObject("");            // false
 isObject("x");           // false
 isObject(123);           // false
 isObject(() => {});      // false
@@ -55,10 +55,9 @@ isPlainObject(new Date());            // false
 isPlainObject(/x/);                   // false
 isPlainObject(new class {});          // false
 isPlainObject("hello");               // false
-isPlainObject(null);                  // falsy (null)
+isPlainObject(null);                  // false
+isPlainObject(Object.create(null));   // true   (null-prototype objects are plain)
 ```
-
-> **BUG (`src/index.ts:39`)**: throws on `Object.create(null)` because the constructor is `undefined`. Add `?.` once you fix it: `value?.constructor?.name === "Object"`.
 
 ## `Is.array`
 
@@ -79,16 +78,16 @@ Has a `[Symbol.iterator]` method.
 ```ts
 isIterable([]);              // true
 isIterable("hello");         // true
+isIterable("");              // true   (empty string is still iterable)
 isIterable(new Set());       // true
 isIterable(new Map());       // true
 isIterable({ *[Symbol.iterator]() { yield 1; } }); // true
 
 isIterable({});              // false
 isIterable(123);             // false
-isIterable(null);            // false (null)
+isIterable(null);            // false
+isIterable(undefined);       // false
 ```
-
-> **BUG (`src/index.ts:64`)**: `isIterable("")` returns `""` instead of `true` because the guard is `value && …` and `""` is falsy. Empty strings ARE iterable (they just yield nothing). Treat the empty-string case specially or wrap with `Boolean(isIterable(x))`.
 
 ## `isEmpty`
 
@@ -98,10 +97,13 @@ The most subtle predicate in the package. Branches:
 |---|---|---|
 | `null`, `undefined`, `""` | `true` | Listed in the empty-set |
 | `0`, `true`, `false` | `false` | Listed in the "real value" set |
+| `NaN` | `false` | Treated as a numeric value, not absence |
+| `Date` instance | `false` | A constructed Date is a real value |
 | `new Map()` / `new Set()` | `.size === 0` | Special cased |
+| Plain object (no `Symbol.iterator`) | `Object.keys(v).length === 0` | Compared by own-key count |
 | Iterable (array, string, …) | `.length === 0` | Generic check |
 | Numeric (per `isNumeric`) | `false` | Numbers are real values |
-| Everything else | `true` | Default — **buggy for plain objects, Dates, NaN** |
+| Everything else | `true` | Default fall-through |
 
 ```ts
 isEmpty(null);        // true
@@ -118,42 +120,7 @@ isEmpty("0");         // false
 isEmpty(" ");         // false
 isEmpty([0]);         // false
 isEmpty(1);           // false
+isEmpty({ a: 1 });    // false
+isEmpty(new Date());  // false
+isEmpty(NaN);         // false
 ```
-
-> **BUGS (`src/index.ts:110`)**:
-> - `isEmpty({ a: 1 })` returns `true`. The fall-through default is `return true`; non-iterable plain objects with keys leak through. Workaround: `isEmpty(x) || (isPlainObject(x) && Object.keys(x).length === 0)` reversed — `Object.keys(x).length === 0 || isEmpty(x)`.
-> - `isEmpty(new Date())` returns `true`. A constructed Date is not empty.
-> - `isEmpty(NaN)` returns `true`. Debatable, but unexpected if you've been thinking "is it a falsy value".
-
-If you need a correct emptiness check, prefer:
-
-```ts
-function isReallyEmpty(v: unknown): boolean {
-  if (v == null) return true;
-  if (typeof v === "string" || Array.isArray(v)) return v.length === 0;
-  if (v instanceof Map || v instanceof Set) return v.size === 0;
-  if (typeof v === "object" && v.constructor?.name === "Object") return Object.keys(v).length === 0;
-  return false;
-}
-```
-
-## Falsy-return pattern
-
-`isObject`, `isPlainObject`, `isRegex`, `isPromise`, `isDate`, `isGenerator`, and `isIterable` all use the shape `value && …`. When `value` is falsy they short-circuit and return the operand itself:
-
-```ts
-isObject(null);       // null
-isObject(undefined);  // undefined
-isObject(0);          // 0
-isObject("");         // ""
-```
-
-In Boolean contexts (`if`, `&&`, `||`, `!`) this is fine. With `=== false` it isn't:
-
-```ts
-if (isObject(null) === false) { /* never runs */ }
-if (!isObject(null)) { /* this runs */ }
-if (Boolean(isObject(null)) === false) { /* this runs too */ }
-```
-
-Use `!isObject(x)`, `Boolean(isObject(x))`, or the truthy-falsy form. Don't compare to `false` directly.

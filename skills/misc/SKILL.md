@@ -8,13 +8,13 @@ description: |
 
 # Object kinds
 
-Five predicates for specific built-in object types. None of them work on subclasses (they're all constructor-name checks).
+Five predicates for specific built-in object types.
 
 | Predicate | Quick rule |
 |---|---|
-| `isPromise(v)` | `v.constructor.name === "Promise"` |
-| `isDate(v)` | `typeof v === "object" && v.constructor === Date` |
-| `isGenerator(v)` | `v.constructor.name === "GeneratorFunction"` (broken — see below) |
+| `isPromise(v)` | `v instanceof Promise` (recognizes subclasses) |
+| `isDate(v)` | `typeof v === "object" && v instanceof Date` |
+| `isGenerator(v)` | Object with `.next()` AND `[Symbol.iterator]() === v` (duck-typed) |
 | `isFormElement(v)` | `v instanceof HTMLFormElement` |
 | `isFormData(v)` | `v instanceof FormData` |
 
@@ -28,10 +28,11 @@ isPromise(fetch("/api"));                  // true
 isPromise({ then() {} });                  // false  (thenable, not a Promise)
 isPromise(async function () {}());         // true   (async fn returns a Promise)
 isPromise({});                             // false
-isPromise(null);                           // null   (falsy non-boolean)
-```
+isPromise(null);                           // false
 
-> **BUG (`src/index.ts:87`)**: subclasses don't match (`class MyPromise extends Promise`). The constructor name of an instance is `"MyPromise"`, not `"Promise"`. Use `value instanceof Promise` if you need to catch subclasses.
+class MyPromise extends Promise<unknown> {}
+isPromise(new MyPromise((r) => r(1)));     // true   (subclasses match via instanceof)
+```
 
 ## `isDate`
 
@@ -44,7 +45,7 @@ isDate(new Date("not real"));  // true   (invalid Date is still a Date)
 isDate("2024-01-01");          // false  (string, not Date)
 isDate(Date.now());            // false  (number)
 isDate({});                    // false
-isDate(null);                  // null
+isDate(null);                  // false
 ```
 
 Note: `isDate(new Date("invalid"))` is `true`. To check "is it a valid Date instance":
@@ -57,28 +58,18 @@ function isValidDate(v: unknown): v is Date {
 
 ## `isGenerator`
 
+Duck-typed: an object that has a `.next` function AND whose `[Symbol.iterator]()` returns itself (the defining trait of a generator instance).
+
 ```ts
+function* gen() { yield 1; }
+isGenerator(gen());            // true   (generator instance)
+
+isGenerator(gen);              // false  (the generator FUNCTION, not an instance)
 isGenerator({});               // false
 isGenerator(() => {});         // false
 isGenerator("hello");          // false
-isGenerator(null);             // null
+isGenerator(null);             // false
 ```
-
-> **BUG (`src/index.ts:99`)**: never matches generator INSTANCES. In V8, `gen().constructor.name` is `""`, not `"GeneratorFunction"`. The canonical detection is:
->
-> ```ts
-> function isReallyGenerator(v: unknown): boolean {
->   return Object.prototype.toString.call(v) === "[object Generator]";
-> }
-> ```
->
-> Or duck-type:
->
-> ```ts
-> function isReallyGenerator(v: any): boolean {
->   return v != null && typeof v.next === "function" && typeof v[Symbol.iterator] === "function";
-> }
-> ```
 
 ## `isFormElement` (`Is.form`)
 
@@ -106,6 +97,6 @@ isFormData(null);                 // false
 
 ## Notes
 
-- All five use constructor-identity or constructor-name checks. None of them recognize subclasses (except `isFormElement` / `isFormData` which use `instanceof` — those DO follow the prototype chain).
-- The constructor-name pattern (`v && v.constructor.name === "X"`) is the source of the falsy-return issue: `isPromise(null)` returns `null`, not `false`. See [`collections.md`](./collections.md#falsy-return-pattern) for the boolean-coercion fix.
+- `isPromise`, `isDate`, `isFormElement`, and `isFormData` all use `instanceof`, so subclasses match. `isGenerator` is duck-typed and matches generator instances regardless of how they were produced.
+- All five return a real `false` (not the operand) for non-matches — safe to compare with `=== false` or `!`.
 - For Promise-shaped checks (the *thenable protocol* — anything with a `.then(onFulfill, onReject)` method), use `value != null && typeof value.then === "function"` directly. `isPromise` is stricter on purpose.
