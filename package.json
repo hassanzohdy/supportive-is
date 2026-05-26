@@ -1,6 +1,6 @@
 {
   "name": "@mongez/supportive-is",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Tree-shakable type & shape predicates: isString, isEmpty, isUrl, isJson, isEmail, isPromise, isMobile, … framework-agnostic and dependency-free.",
   "main": "src/index.ts",
   "sideEffects": false,

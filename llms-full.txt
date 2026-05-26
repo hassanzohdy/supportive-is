@@ -61,6 +61,9 @@ import Is from "@mongez/supportive-is";  // alternative legacy import
 
 ## Primitives & numbers
 
+> **Auto-trigger:** code imports `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, or `isScalar` from `@mongez/supportive-is`; user asks "how do I check string / number / int / float", "detect a numeric string like '12'", "difference between isPrimitive and isScalar", or "type-narrow a string in TS"; typical import is `import { isString, isNumeric } from "@mongez/supportive-is"` (or `Is.string(x)` / `Is.numeric(x)` via the legacy default `Is` namespace).
+> **Skip when:** native `typeof v === "string"` or `Number.isInteger(v)` checks where you don't need this package — those are correct and avoid this package's known `isInt`/`isFloat` negative-number bugs; `@mongez/reinforcements` for string/number transformations (not predicates); schema validators.
+
 ### `isString(value)`
 
 `typeof value === "string"`. Returns `false` for `new String("x")` (which is `typeof "object"`).
@@ -168,6 +171,9 @@ isScalar({});           // false
 
 ## Collections & shape
 
+> **Auto-trigger:** code imports `isObject`, `isPlainObject`, `isIterable`, `isEmpty`, or uses `Is.array` from `@mongez/supportive-is`; user asks "how do I check if an object is empty / a plain object / iterable", "why does isObject return null instead of false", or "how do I detect a class instance vs literal object"; typical import is `import { isEmpty, isPlainObject } from "@mongez/supportive-is"` (or legacy `import Is from "@mongez/supportive-is"; Is.empty(x)`).
+> **Skip when:** general-purpose array/object utilities (`get`, `set`, `clone`, `pluck`, `groupBy`) — use `mongez-reinforcements-*` skills, since this package is purely shape/type PREDICATES not transformations; schema validation via `zod`/`valibot`; native `Array.isArray`/`typeof` checks without this package imported.
+
 ### `isObject(value)`
 
 Truthy AND `typeof value === "object"`. Includes arrays, dates, regexes, and class instances. Excludes `null` and functions.
@@ -270,6 +276,9 @@ isEmpty(1);           // false
 
 ## Formats
 
+> **Auto-trigger:** code imports `isRegex`, `isValidId`, `isJson`, `isUrl`, or `isEmail` from `@mongez/supportive-is`; user asks "how do I validate URL / email / JSON / HTML id", "check if string is a regex or pattern", or "tell if a value looks like valid JSON"; typical import is `import { isUrl, isEmail } from "@mongez/supportive-is"` (or `Is.url(x)` / `Is.email(x)` via the legacy default `Is` namespace).
+> **Skip when:** trustworthy validation for auth, redirects, or stored data — use `zod`, `valibot`, or RFC-grade libraries instead since these are convenience filters not security gates; schema-based form validation libraries; `@mongez/reinforcements` for general string transforms, not predicates.
+
 ### `isRegex(value)`
 
 Constructor-name check (`"RegExp"`).
@@ -359,6 +368,9 @@ isEmail(undefined);                 // false
 
 ## Object kinds
 
+> **Auto-trigger:** code imports `isPromise`, `isDate`, `isGenerator`, `isFormElement`, or `isFormData` from `@mongez/supportive-is`; user asks "how do I detect a Promise / Date / generator / form element / FormData", "is this thing a thenable", or "check Date vs string vs number"; typical import is `import { isPromise, isDate } from "@mongez/supportive-is"` (or `Is.promise(x)` / `Is.date(x)` / `Is.form(x)` via the legacy default `Is` namespace).
+> **Skip when:** thenable-protocol checks for non-native Promises (these are constructor-name checks that miss subclasses — use `value instanceof Promise` instead); date math or arithmetic — use `dayjs`/`date-fns`/`Temporal`, this only tells you "is it a Date instance"; `@mongez/reinforcements` general utilities.
+
 ### `isPromise(value)`
 
 Native `Promise` instance (constructor-name check).
@@ -424,6 +436,9 @@ isFormData({});              // false
 ```
 
 ## Environment / DOM
+
+> **Auto-trigger:** code imports `isMobile`, `isMac`, `isDesktop`, `isBrowser`, `isChrome`, `isFirefox`, `isSafari`, `isOpera`, `isIE`, or `isEdge` from `@mongez/supportive-is`; user asks "how do I detect mobile / iOS / Android", "Cmd vs Ctrl on Mac", "browser sniff for Safari/Chrome/Firefox", or "is this code running in browser vs SSR"; typical import is `import { isMobile, isMac } from "@mongez/supportive-is"` (or `Is.mobile.android()` via the legacy default export — note this package commonly exposes methods through the `Is` object too).
+> **Skip when:** server-side user-agent parsing from request headers — use a dedicated UA parser library on `request.headers.get("user-agent")`; React-Native or Capacitor device-info APIs; CSS media queries for responsive layout; feature-detection beyond what these vendor probes cover.
 
 All of the below probe `navigator`, `window`, or `document` at **call time**. Importing them on the server is safe; invoking them on the server throws.
 
@@ -532,6 +547,9 @@ Affected predicates: `isObject`, `isRegex`, `isPlainObject`, `isPromise`, `isDat
 - Server-side user-agent parsing → parse the request header yourself
 
 ## Patterns
+
+> **Auto-trigger:** code combines multiple `@mongez/supportive-is` imports (e.g. `isEmpty` + `isEmail` + `isUrl` for forms, or `isPlainObject` for deep merge); user asks "how do I validate a form with supportive-is", "deep merge that respects class instances", "filter out empty values", "Cmd vs Ctrl shortcut", "polymorphic string-or-regex argument", or "TS type narrowing with isString"; typical import is `import { isEmpty, isEmail, isUrl } from "@mongez/supportive-is"` — combining several predicates in one module.
+> **Skip when:** single-predicate questions — use the category-specific skill (`mongez-supportive-is-primitives`/`-collections`/`-formats`/`-misc`/`-environment`); React-specific form-state libraries like `react-hook-form` or `formik`; `@mongez/reinforcements` recipes for object/array transformations.
 
 ### A form validator
 

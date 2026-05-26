@@ -1,7 +1,9 @@
 ---
 name: mongez-supportive-is-overview
-description: High-level introduction to @mongez/supportive-is — what it is, how to install and import it, its mental model, and where its scope ends.
-when_to_use: User asks what @mongez/supportive-is does, how to install or import it, whether to use named exports vs the Is namespace, or what utility predicates it provides in general.
+description: |
+  High-level introduction to `@mongez/supportive-is` — what it is, how to install and import it, its mental model, and where its scope ends.
+  TRIGGER when: code imports anything from `@mongez/supportive-is` (named export OR default `Is`); user asks "what does @mongez/supportive-is do", "how do I install or import supportive-is", "named exports vs the Is namespace", or "which predicates does this package give me"; typical import is `import { isEmpty } from "@mongez/supportive-is"` for tree-shaking, or legacy `import Is from "@mongez/supportive-is"; Is.empty(x)` — note this package commonly exports a default `Is` object with methods, not many top-level functions.
+  SKIP: deep-dive on a specific predicate group (use the category-specific `mongez-supportive-is-*` skill — primitives, collections, formats, misc, environment); `@mongez/reinforcements` general object/string/array utilities which are transformations not predicates; schema validation via `zod`/`valibot`.
 ---
 
 # Overview

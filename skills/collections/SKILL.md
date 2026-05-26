@@ -1,7 +1,9 @@
 ---
 name: mongez-supportive-is-collections
-description: Documents the five collection and shape predicates — isObject, isPlainObject, Is.array, isIterable, and isEmpty — including the falsy-return pattern and known bugs.
-when_to_use: User calls isObject(), isPlainObject(), isIterable(), isEmpty(), or Is.array() from @mongez/supportive-is, or asks about emptiness checks, plain-object detection, iterable detection, or why a predicate returns null instead of false.
+description: |
+  Documents the five collection and shape predicates — `isObject`, `isPlainObject`, `Is.array`, `isIterable`, and `isEmpty` — including the falsy-return pattern and known bugs.
+  TRIGGER when: code imports `isObject`, `isPlainObject`, `isIterable`, `isEmpty`, or uses `Is.array` from `@mongez/supportive-is`; user asks "how do I check if an object is empty / a plain object / iterable", "why does isObject return null instead of false", or "how do I detect a class instance vs literal object"; typical import is `import { isEmpty, isPlainObject } from "@mongez/supportive-is"` (or legacy `import Is from "@mongez/supportive-is"; Is.empty(x)`).
+  SKIP: general-purpose array/object utilities (`get`, `set`, `clone`, `pluck`, `groupBy`) — use `mongez-reinforcements-*` skills, since this package is purely shape/type PREDICATES not transformations; schema validation via `zod`/`valibot`; native `Array.isArray`/`typeof` checks without this package imported.
 ---
 
 # Collections & shape

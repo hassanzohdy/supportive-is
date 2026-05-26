@@ -1,7 +1,9 @@
 ---
 name: mongez-supportive-is-environment
-description: Documents the browser and device-environment predicates — isMobile, isMac, isDesktop, isBrowser, isChrome, isFirefox, isSafari, isOpera, isIE, and isEdge — including SSR safety rules and known bugs.
-when_to_use: User calls isMobile(), isMac(), isDesktop(), isBrowser(), isChrome(), isFirefox(), isSafari(), isOpera(), isIE(), or isEdge() from @mongez/supportive-is, or asks about browser detection, device detection, SSR safety for navigator/window access, or mobile-responsive logic.
+description: |
+  Documents the browser and device-environment predicates — `isMobile`, `isMac`, `isDesktop`, `isBrowser`, `isChrome`, `isFirefox`, `isSafari`, `isOpera`, `isIE`, and `isEdge` — including SSR safety rules and known bugs.
+  TRIGGER when: code imports `isMobile`, `isMac`, `isDesktop`, `isBrowser`, `isChrome`, `isFirefox`, `isSafari`, `isOpera`, `isIE`, or `isEdge` from `@mongez/supportive-is`; user asks "how do I detect mobile / iOS / Android", "Cmd vs Ctrl on Mac", "browser sniff for Safari/Chrome/Firefox", or "is this code running in browser vs SSR"; typical import is `import { isMobile, isMac } from "@mongez/supportive-is"` (or `Is.mobile.android()` via the legacy default export — note this package commonly exposes methods through the `Is` object too).
+  SKIP: server-side user-agent parsing from request headers — use a dedicated UA parser library on `request.headers.get("user-agent")`; React-Native or Capacitor device-info APIs; CSS media queries for responsive layout; feature-detection beyond what these vendor probes cover.
 ---
 
 # Environment / browser

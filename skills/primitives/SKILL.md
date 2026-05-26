@@ -1,7 +1,9 @@
 ---
 name: mongez-supportive-is-primitives
-description: Documents the six primitive and numeric predicates — isString, isNumeric, isInt, isFloat, isPrimitive, and isScalar — including their semantics, edge cases, and known bugs.
-when_to_use: User calls isString(), isNumeric(), isInt(), isFloat(), isPrimitive(), or isScalar() from @mongez/supportive-is, or asks about type-checking primitives, numeric string detection, or the difference between isPrimitive and isScalar.
+description: |
+  Documents the six primitive and numeric predicates — `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, and `isScalar` — including their semantics, edge cases, and known bugs.
+  TRIGGER when: code imports `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, or `isScalar` from `@mongez/supportive-is`; user asks "how do I check string / number / int / float", "detect a numeric string like '12'", "difference between isPrimitive and isScalar", or "type-narrow a string in TS"; typical import is `import { isString, isNumeric } from "@mongez/supportive-is"` (or `Is.string(x)` / `Is.numeric(x)` via the legacy default `Is` namespace).
+  SKIP: native `typeof v === "string"` or `Number.isInteger(v)` checks where you don't need this package — those are correct and avoid this package's known `isInt`/`isFloat` negative-number bugs; `@mongez/reinforcements` for string/number transformations (not predicates); schema validators.
 ---
 
 # Primitives & numbers

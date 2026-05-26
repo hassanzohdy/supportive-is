@@ -1,7 +1,9 @@
 ---
 name: mongez-supportive-is-misc
-description: Documents the five object-kind predicates — isPromise, isDate, isGenerator, isFormElement, and isFormData — including constructor-name semantics and known bugs.
-when_to_use: User calls isPromise(), isDate(), isGenerator(), isFormElement(), or isFormData() from @mongez/supportive-is, or asks about detecting Promise instances, Date objects, generator functions, HTML form elements, or FormData objects.
+description: |
+  Documents the five object-kind predicates — `isPromise`, `isDate`, `isGenerator`, `isFormElement`, and `isFormData` — including constructor-name semantics and known bugs.
+  TRIGGER when: code imports `isPromise`, `isDate`, `isGenerator`, `isFormElement`, or `isFormData` from `@mongez/supportive-is`; user asks "how do I detect a Promise / Date / generator / form element / FormData", "is this thing a thenable", or "check Date vs string vs number"; typical import is `import { isPromise, isDate } from "@mongez/supportive-is"` (or `Is.promise(x)` / `Is.date(x)` / `Is.form(x)` via the legacy default `Is` namespace).
+  SKIP: thenable-protocol checks for non-native Promises (these are constructor-name checks that miss subclasses — use `value instanceof Promise` instead); date math or arithmetic — use `dayjs`/`date-fns`/`Temporal`, this only tells you "is it a Date instance"; `@mongez/reinforcements` general utilities.
 ---
 
 # Object kinds

@@ -9,20 +9,27 @@ Every export ships from the package root.
 ## Docs
 
 - [Overview](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/overview.md): Pitch, install, mental model, scope vs. siblings.
+  - *Auto-trigger:* Loads when a user imports anything from `@mongez/supportive-is` or asks what the package does, how to install, or named vs `Is` namespace.
 - [README](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/README.md): Marketing-style index with categorized predicate tables.
 - [Changelog](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/CHANGELOG.md): Release notes plus a catalogue of known-but-deferred bugs.
 
 ## Reference (by category)
 
 - [Primitives & numbers](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/primitives.md): `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, `isScalar`. Edge cases around `NaN`, scientific notation, and negative numbers.
+  - *Auto-trigger:* Loads when code imports `isString`/`isNumeric`/`isInt`/`isFloat`/`isPrimitive`/`isScalar` or asks about primitive/numeric-string type checks.
 - [Collections & shape](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/collections.md): `isObject`, `isPlainObject`, `isIterable`, `isEmpty`, `Is.array`. Includes the smart-emptiness rules.
+  - *Auto-trigger:* Loads when code imports `isObject`/`isPlainObject`/`isIterable`/`isEmpty`/`Is.array` or asks about emptiness, plain-object, or iterable detection.
 - [Formats](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/formats.md): `isJson`, `isUrl`, `isEmail`, `isRegex`, `isValidId`. Each has its own quirks — read this card before you trust them as security gates.
+  - *Auto-trigger:* Loads when code imports `isRegex`/`isValidId`/`isJson`/`isUrl`/`isEmail` or asks about validating URL, email, JSON, HTML id, or regex detection.
 - [Objects](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/misc.md): `isPromise`, `isDate`, `isGenerator`, `isFormElement`, `isFormData`.
+  - *Auto-trigger:* Loads when code imports `isPromise`/`isDate`/`isGenerator`/`isFormElement`/`isFormData` or asks about detecting these built-in object kinds.
 - [Environment / browser](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/environment.md): `isMobile.*`, `isDesktop`, `isMac`, `isBrowser`, vendor-specific probes. SSR notes.
+  - *Auto-trigger:* Loads when code imports `isMobile`/`isMac`/`isDesktop`/`isBrowser`/`isChrome`/`isFirefox`/`isSafari`/`isOpera`/`isIE`/`isEdge` or asks about browser or device detection and SSR safety.
 
 ## Recipes
 
 - [Recipes](https://raw.githubusercontent.com/hassanzohdy/supportive-is/main/skills/recipes.md): Form validation, deep-merge guards, mobile-aware UI, the `isEmpty`-driven nullable handler.
+  - *Auto-trigger:* Loads when code combines several supportive-is predicates (e.g. forms, deep merge, empty filtering) or asks for idiomatic composition recipes.
 
 ## Quick rules
 
