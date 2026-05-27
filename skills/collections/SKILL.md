@@ -13,7 +13,7 @@ Five predicates that ask "what shape of value is this, and is it empty?". `isObj
 | Predicate | Quick rule |
 |---|---|
 | `isObject(v)` | Truthy AND `typeof v === "object"` |
-| `isPlainObject(v)` | Constructor name is exactly `"Object"` |
+| `isPlainObject(v)` | Constructor name is exactly `"Object"` (or null-prototype) |
 | `Is.array(v)` | `Array.isArray(v)` |
 | `isIterable(v)` | Has a `[Symbol.iterator]` method |
 | `isEmpty(v)` | Smart emptiness (see below) |

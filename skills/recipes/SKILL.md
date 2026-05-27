@@ -140,25 +140,25 @@ function find(haystack: string, needle: string | RegExp) {
 
 ## Type narrowing in TypeScript
 
-Vanilla `isString` is a type guard out of the box:
+None of the predicates ship as declared TypeScript type guards — they're all typed `(value: any) => boolean`. Wrap them with your own typed guard when you need narrowing on a union:
 
 ```ts
-import { isString } from "@mongez/supportive-is";
+import { isString, isPlainObject } from "@mongez/supportive-is";
+
+function isStr(v: unknown): v is string {
+  return isString(v);
+}
+
+function isObjLike<T extends object>(v: unknown): v is T {
+  return isPlainObject(v);
+}
 
 function greet(v: string | number) {
-  if (isString(v)) {
+  if (isStr(v)) {
     return `Hello, ${v.toUpperCase()}`;  // v is narrowed to string here
   }
   return `Number: ${v.toFixed(2)}`;       // v is narrowed to number here
 }
 ```
 
-For the others, TypeScript doesn't infer narrowing from the current signatures (the parameter is `any`). Either use `as` after the check or wrap with your own typed guard:
-
-```ts
-import { isPlainObject } from "@mongez/supportive-is";
-
-function isObjLike<T extends object>(v: unknown): v is T {
-  return isPlainObject(v);
-}
-```
+The wrapper compiles to a single call — there's no runtime cost.

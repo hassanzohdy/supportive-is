@@ -31,7 +31,15 @@ isString(0);               // false
 isString(null);            // false
 ```
 
-Useful for narrowing union types: TypeScript treats `isString(v)` as a type guard for `string`.
+For TS narrowing, wrap it in a typed guard — `isString` itself is typed as `(value: any) => boolean`, not `value is string`:
+
+```ts
+import { isString } from "@mongez/supportive-is";
+
+function isStr(v: unknown): v is string {
+  return isString(v);
+}
+```
 
 ## `isNumeric`
 

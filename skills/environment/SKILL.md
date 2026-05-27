@@ -94,7 +94,7 @@ Or parse `request.headers.get("user-agent")` on the server with a proper UA pars
 Each vendor probe reads a different bespoke property. All of them are 2018-era hacks; treat the answers as advisory, not authoritative.
 
 - `isSafari` is userAgent-based: it requires `/Safari/i` AND excludes `Chrome|Chromium|Edg|OPR|Android`. Class-based DOM polyfills (happy-dom, JSDOM) no longer trigger a false positive.
-- `isOpera` reads `window.opr?.addons` (with optional chaining) plus `window.opera` and the ` OPR/` UA token — no bare `opr` global reference.
+- `isOpera` reads `window.opr` (guarded with `!!w.opr && !!w.opr.addons`) plus `window.opera` and the ` OPR/` UA token — never touches a bare `opr` global.
 
 ## `isBrowser(name)` vs individual probes
 

@@ -10,7 +10,7 @@ description: |
 
 `@mongez/supportive-is` is a small library of **type and shape predicates** — `isString`, `isEmpty`, `isUrl`, `isPromise`, `isMobile.*`, and friends. Each one is a named export so bundlers can drop the ones you don't use.
 
-The library has no runtime dependencies. Pure predicates work anywhere (Node, browser, Deno, edge runtimes). DOM-touching predicates (`isFormElement`, `isFormData`, `isMobile.*`, `isMac`, `isBrowser`, vendor probes) read globals lazily — they're safe to import on the server but throw if invoked there.
+The library has no runtime dependencies. Pure predicates work anywhere (Node, browser, Deno, edge runtimes). DOM-touching predicates (`isFormElement`, `isFormData`, `isMobile.*`, `isMac`, `isBrowser`, vendor probes) read globals lazily — they're safe to import on the server. Most throw if invoked there; `isFormElement` is the exception, returning `false` when `HTMLFormElement` is undefined.
 
 ## Install
 
