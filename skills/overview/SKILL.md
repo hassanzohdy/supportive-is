@@ -15,7 +15,28 @@ The library has no runtime dependencies. Pure predicates work anywhere (Node, br
 ## Install
 
 ```sh
+# npm
+npm install @mongez/supportive-is
+
+# yarn
 yarn add @mongez/supportive-is
+
+# pnpm
+pnpm add @mongez/supportive-is
+```
+
+## Quick example
+
+Tree-shakable type and shape predicates — import only what you use:
+
+```ts
+import { isEmail, isEmpty, isPlainObject, isUrl } from "@mongez/supportive-is";
+
+isEmail("user@example.com");   // true
+isEmpty({});                   // true
+isEmpty(0);                    // false  — zero is a real value
+isPlainObject(new Date());     // false  — Date is an instance, not a literal
+isUrl("https://example.com");  // true
 ```
 
 ## Import pattern
