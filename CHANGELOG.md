@@ -1,6 +1,6 @@
 # Changelog — @mongez/supportive-is
 
-## Unreleased
+## [2.1.3] — 2026-05-26
 
 ### Fixed
 
@@ -40,18 +40,14 @@
   - Keyword list expanded from 10 generic terms to a comprehensive index of every exported predicate.
   - Removed Jest config block.
   - `devDependencies`: dropped `jest`, `ts-jest`, `@types/jest`, `jest-esm-jsx-transform`; bumped `typescript` to `^5.4`; added `vitest@^2.1` and `happy-dom@^15`.
+- Dropped dev dependencies: `jest`, `ts-jest`, `@types/jest`, `jest-esm-jsx-transform`. The package no longer carries a Jest config.
+- Added dev dependencies: `vitest@^2.1`, `happy-dom@^15`.
+- Bumped: `typescript@^4.5` → `^5.4`.
 
 ### Removed
 
 - `tests/` directory (replaced by `src/__tests__/`).
 - Stale devDeps listed above.
-
-### Dependency notes
-
-- Dropped: `jest`, `ts-jest`, `@types/jest`, `jest-esm-jsx-transform`. The package no longer carries a Jest config.
-- Added: `vitest@^2.1`, `happy-dom@^15`.
-- Bumped: `typescript@^4.5` → `^5.4`.
-- No runtime dependencies. The package remains zero-dep.
 
 ### Tests
 
