@@ -48,7 +48,7 @@ export const isPlainObject = (value: any): boolean => {
  * Check if the given value is validId
  */
 export const isValidId = (value: any) =>
-  Boolean(value && /^[A-Za-z]+[\w\-\:\.]*$/.test(String(value)));
+  Boolean(value && /^[A-Za-z][\w\-:.]*$/.test(String(value)));
 
 /**
  * Check if the given value is a form element

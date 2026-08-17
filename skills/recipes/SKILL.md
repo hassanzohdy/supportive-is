@@ -2,8 +2,6 @@
 name: mongez-supportive-is-recipes
 description: |
   Idiomatic composition patterns for `@mongez/supportive-is` predicates, covering form validation, deep merge, empty filtering, mobile-aware UI, keyboard shortcuts, URL coercion, polymorphic APIs, and TypeScript type narrowing.
-  TRIGGER when: code combines multiple `@mongez/supportive-is` imports (e.g. `isEmpty` + `isEmail` + `isUrl` for forms, or `isPlainObject` for deep merge); user asks "how do I validate a form with supportive-is", "deep merge that respects class instances", "filter out empty values", "Cmd vs Ctrl shortcut", "polymorphic string-or-regex argument", or "TS type narrowing with isString"; typical import is `import { isEmpty, isEmail, isUrl } from "@mongez/supportive-is"` — combining several predicates in one module.
-  SKIP: single-predicate questions — use the category-specific skill (`mongez-supportive-is-primitives`/`-collections`/`-formats`/`-misc`/`-environment`); React-specific form-state libraries like `react-hook-form` or `formik`; `@mongez/reinforcements` recipes for object/array transformations.
 ---
 
 # Recipes

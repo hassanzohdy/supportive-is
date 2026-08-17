@@ -1,33 +1,52 @@
 ---
 name: mongez-supportive-is-overview
 description: |
-  High-level introduction to `@mongez/supportive-is` — what it is, how to install and import it, its mental model, and where its scope ends.
-  TRIGGER when: code imports anything from `@mongez/supportive-is` (named export OR default `Is`); user asks "what does @mongez/supportive-is do", "how do I install or import supportive-is", "named exports vs the Is namespace", or "which predicates does this package give me"; typical import is `import { isEmpty } from "@mongez/supportive-is"` for tree-shaking, or legacy `import Is from "@mongez/supportive-is"; Is.empty(x)` — note this package commonly exports a default `Is` object with methods, not many top-level functions.
-  SKIP: deep-dive on a specific predicate group (use the category-specific `mongez-supportive-is-*` skill — primitives, collections, formats, misc, environment); `@mongez/reinforcements` general object/string/array utilities which are transformations not predicates; schema validation via `zod`/`valibot`.
+  High-level introduction to @mongez/supportive-is — a tree-shakable library of ~60 type and shape predicates with server-safe imports.
 ---
 
-# Overview
+# @mongez/supportive-is — Overview
 
-`@mongez/supportive-is` is a small library of **type and shape predicates** — `isString`, `isEmpty`, `isUrl`, `isPromise`, `isMobile.*`, and friends. Each one is a named export so bundlers can drop the ones you don't use.
+A small library of **type and shape predicates** — `isString`, `isEmpty`, `isUrl`, `isPromise`, `isMobile.*`, and friends. Each one is a named export, so bundlers drop the ones you don't use. Pure predicates run anywhere; DOM-touching predicates read globals lazily so server-side imports stay safe.
 
-The library has no runtime dependencies. Pure predicates work anywhere (Node, browser, Deno, edge runtimes). DOM-touching predicates (`isFormElement`, `isFormData`, `isMobile.*`, `isMac`, `isBrowser`, vendor probes) read globals lazily — they're safe to import on the server. Most throw if invoked there; `isFormElement` is the exception, returning `false` when `HTMLFormElement` is undefined.
+## Highlighted features
+
+<div class="mongez-highlights">
+
+<div class="mongez-highlight" data-accent="ice">
+  <svg class="mongez-highlight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+  <h3>~60 named predicates</h3>
+  <p>One named export per predicate — <code>isString</code>, <code>isEmail</code>, <code>isUrl</code>, <code>isPromise</code>, <code>isPlainObject</code>, dozens more.</p>
+</div>
+
+<div class="mongez-highlight" data-accent="ice">
+  <svg class="mongez-highlight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75"/></svg>
+  <h3>Tree-shake to ~80 bytes</h3>
+  <p><code>sideEffects: false</code> + per-predicate exports. Pull <code>isEmail</code> alone and ship ~80 bytes, not the whole 3KB bag.</p>
+</div>
+
+<div class="mongez-highlight" data-accent="fire">
+  <svg class="mongez-highlight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <h3>Server-safe imports</h3>
+  <p>DOM/browser predicates read <code>navigator</code> / <code>window</code> / <code>document</code> lazily. Safe to import on the server; <code>isFormElement</code> returns <code>false</code> there instead of throwing.</p>
+</div>
+
+<div class="mongez-highlight" data-accent="bolt">
+  <svg class="mongez-highlight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <h3>"Smart" emptiness</h3>
+  <p><code>isEmpty</code> collapses <code>null</code> / <code>undefined</code> / <code>""</code> / <code>[]</code> / <code>{}</code> / Maps / Sets into one check. <code>0</code> and <code>false</code> are deliberately NOT empty.</p>
+</div>
+
+</div>
 
 ## Install
 
 ```sh
-# npm
 npm install @mongez/supportive-is
-
-# yarn
-yarn add @mongez/supportive-is
-
-# pnpm
-pnpm add @mongez/supportive-is
+# or: yarn add @mongez/supportive-is
+# or: pnpm add @mongez/supportive-is
 ```
 
-## Quick example
-
-Tree-shakable type and shape predicates — import only what you use:
+## Quick peek
 
 ```ts
 import { isEmail, isEmpty, isPlainObject, isUrl } from "@mongez/supportive-is";
@@ -39,57 +58,30 @@ isPlainObject(new Date());     // false  — Date is an instance, not a literal
 isUrl("https://example.com");  // true
 ```
 
-## Import pattern
-
-```ts
-import {
-  isString,
-  isNumeric,
-  isEmpty,
-  isUrl,
-  isEmail,
-  isPlainObject,
-  isPromise,
-  isMobile,
-  // …
-  Is,                    // optional — legacy default export
-} from "@mongez/supportive-is";
-```
-
-Both `import { isEmpty } from "@mongez/supportive-is"` and `import Is from "@mongez/supportive-is"; Is.empty(x)` work. The former tree-shakes; the latter doesn't.
+Tree-shakable predicates — import only what you use.
 
 ## Mental model
 
-| Concept | Mental model |
+| Concept | What it means |
 |---|---|
-| **Pure predicates** | Single-argument functions: take a value, return a boolean-ish. No side effects, no allocation. |
-| **`Is` namespace** | A bag of references to the same functions, kept for v1 compatibility. |
-| **Environment probes** | Touch `navigator`/`window`/`document` at call time. Server-safe to import, server-unsafe to call. |
+| **Pure predicates** | Single-argument functions: take a value, return boolean-ish. No side effects, no allocation. |
+| **`Is` namespace** | A bag of references to the same functions, kept for v1 compatibility. Doesn't tree-shake — prefer named imports. |
+| **Environment probes** | Touch `navigator` / `window` / `document` at call time. Server-safe to import, server-unsafe to call. |
 | **"Smart" emptiness** | `isEmpty` collapses null / undefined / "" / [] / {} / `new Map()` / `new Set()` into one check, with `0` and `false` deliberately not empty. |
 
 ## Scope boundaries
 
 | Concern | Lives in | Why |
 |---|---|---|
-| General object/string/array helpers (`get`, `set`, `clone`, `slugify`, …) | [`@mongez/reinforcements`](https://github.com/hassanzohdy/reinforcements) | Different package, different scope |
-| Atom state primitives | [`@mongez/atom`](https://github.com/hassanzohdy/atom) | Stateful — opposite of pure predicates |
-| Schema validation (`z.string().email()`) | `zod`, `valibot` | Out of scope — these predicates are guards, not validators |
-| Date math | `dayjs`, `date-fns`, `Temporal` | `isDate` only tells you "is it a Date instance" |
+| General object/string/array helpers | [`@mongez/reinforcements`](/reinforcements/overview/) | Different package, different scope |
+| Schema validation (`z.string().email()`) | `zod`, `valibot` | Predicates are guards, not validators |
 | HTML sanitization | `DOMPurify` | Regex-based stripping is a footgun |
-| Server-side user-agent parsing | Parse `request.headers.get("user-agent")` yourself | Browser predicates read `navigator` and crash on the server |
 
-## Why "one named export each"
+## Where to go next
 
-`Is.empty(...)` and `import { isEmpty } from "@mongez/supportive-is"` resolve to the same function. The difference shows up in your bundle: if you import `Is` you take the full set, because the bundler can't statically prove which keys you'll touch. If you import named predicates, the rest fall away.
-
-```ts
-// Whole namespace — ~3 KB in the bundle
-import Is from "@mongez/supportive-is";
-Is.empty(x);
-
-// Named — ~80 bytes per predicate
-import { isEmpty } from "@mongez/supportive-is";
-isEmpty(x);
-```
-
-The package is marked `sideEffects: false` so tree-shakers can drop unused exports for real.
+- **[Primitives](../primitives/)** — `isString`, `isNumber`, `isBoolean`, `isFunction`, etc.
+- **[Collections](../collections/)** — `isArray`, `isPlainObject`, `isMap`, `isSet`, `isEmpty`
+- **[Formats](../formats/)** — `isEmail`, `isUrl`, `isJson`, `isIp`
+- **[Environment](../environment/)** — `isBrowser`, `isMobile`, `isMac`, vendor probes
+- **[Misc](../misc/)** — edge-case predicates
+- **[Recipes](../recipes/)** — composition patterns

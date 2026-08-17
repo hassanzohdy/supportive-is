@@ -2,8 +2,6 @@
 name: mongez-supportive-is-formats
 description: |
   Documents the five string-format predicates — `isRegex`, `isValidId`, `isJson`, `isUrl`, and `isEmail` — including their rules, limitations, and known bugs.
-  TRIGGER when: code imports `isRegex`, `isValidId`, `isJson`, `isUrl`, or `isEmail` from `@mongez/supportive-is`; user asks "how do I validate URL / email / JSON / HTML id", "check if string is a regex or pattern", or "tell if a value looks like valid JSON"; typical import is `import { isUrl, isEmail } from "@mongez/supportive-is"` (or `Is.url(x)` / `Is.email(x)` via the legacy default `Is` namespace).
-  SKIP: trustworthy validation for auth, redirects, or stored data — use `zod`, `valibot`, or RFC-grade libraries instead since these are convenience filters not security gates; schema-based form validation libraries; `@mongez/reinforcements` for general string transforms, not predicates.
 ---
 
 # Formats

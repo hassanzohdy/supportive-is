@@ -1,5 +1,11 @@
 # Changelog — @mongez/supportive-is
 
+## [2.1.4] — 2026-08-17
+
+### Security
+
+- **`isValidId` regex is now linear** (`src/index.ts:50`). The previous pattern nested a quantified group inside another quantifier, giving a match cost that grows quadratically-to-exponentially in the input length — so a long crafted string passed to `Is.validHtmlId(...)` pinned the thread instead of returning `false`. A validator is exactly the surface that gets pointed at untrusted input, which is what makes this worth a release. The pattern is now `/^[A-Za-z][\w\-:.]*$/`: a single unambiguous character class with no nested quantifier, so there is nothing to backtrack over. Accepted and rejected values are unchanged.
+
 ## [2.1.3] — 2026-05-26
 
 ### Fixed

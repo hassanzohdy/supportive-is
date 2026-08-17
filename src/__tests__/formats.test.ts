@@ -60,6 +60,13 @@ describe("isValidId (Is.validHtmlId)", () => {
   it("is exposed as Is.validHtmlId", () => {
     expect(Is.validHtmlId).toBe(isValidId);
   });
+
+  it("rejects long non-matching input quickly (no catastrophic backtracking)", () => {
+    const input = "a" + "a".repeat(50000) + "!";
+    const start = Date.now();
+    expect(isValidId(input)).toBe(false);
+    expect(Date.now() - start).toBeLessThan(200);
+  });
 });
 
 describe("isJson", () => {
