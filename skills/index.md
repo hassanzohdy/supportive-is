@@ -3,7 +3,7 @@ description: "Type-check predicates and environment detection in one tiny packag
 ---
 # @mongez/supportive-is
 
-A set of boolean predicates, each also reachable as a method on the `Is` object. They return plain `boolean`; they are runtime checks, not TypeScript type guards.
+A set of predicates, each also reachable as a method on the `Is` object. Every checker takes `unknown`. Twelve of them are TypeScript type predicates (`isString`, `isPlainObject`, `isObject`, `isDate`, `isRegex`, `isPromise`, `isIterable`, `isGenerator`, `isScalar`, `isPrimitive`, `isFormElement`, `isFormData`) so `tsc` narrows for you; the refinement checks (`isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty`) and the environment checks return plain `boolean`.
 
 ## The 80% path
 1. Orient with `overview.md`.
@@ -19,3 +19,4 @@ A set of boolean predicates, each also reachable as a method on the `Is` object.
 - `isObject` is true for arrays and dates; use `isPlainObject` for `{}`-style data.
 - Environment checks (`isBrowser`, `isMobile`, `isChrome`) rely on globals, so guard them on the server.
 - `isEmail` is a format check, not deliverability.
+- Values typed `any` are narrowed by the predicates (`isPlainObject(x)` makes `x` a `Record<string, unknown>`), so property access on them needs a further narrowing or a typed value.

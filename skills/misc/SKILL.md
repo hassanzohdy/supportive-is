@@ -6,7 +6,7 @@ description: |
 
 # Object kinds
 
-Five predicates for specific built-in object types.
+Five predicates for specific built-in object types. All five are type predicates on `unknown`: `isPromise` is `value is Promise<unknown>`, `isDate` is `value is Date`, `isGenerator` is `value is IterableIterator<unknown>` (duck-typed, so `Generator`'s `return`/`throw` are not verified), `isFormElement` is `value is HTMLFormElement` and `isFormData` is `value is FormData`. Without the DOM lib in your compilation, `isFormElement` narrows to `object` instead, so the typings never require `lib: ["dom"]`.
 
 | Predicate | Quick rule |
 |---|---|

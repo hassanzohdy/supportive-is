@@ -59,6 +59,44 @@ import {
 import Is from "@mongez/supportive-is";  // alternative legacy import
 ```
 
+## Type predicates (v3)
+
+Every checker takes `unknown`. The ones whose runtime test is exactly "is this a `T`" are declared as `value is T` type predicates, so `tsc` narrows both branches:
+
+| Function | Narrows `unknown` to |
+|---|---|
+| `isString` | `string` |
+| `isPlainObject` | `Record<string, unknown>` |
+| `isObject` | `object` |
+| `isDate` | `Date` |
+| `isRegex` | `RegExp` |
+| `isPromise` | `Promise<unknown>` |
+| `isIterable` | `Iterable<unknown>` |
+| `isGenerator` | `IterableIterator<unknown>` (duck-typed: `next()` plus self-iterable) |
+| `isScalar` | `string \| boolean \| number \| symbol \| bigint` |
+| `isPrimitive` | `string \| boolean \| number \| bigint` |
+| `isFormElement` | `HTMLFormElement` (`object` when the DOM lib is not in your compilation) |
+| `isFormData` | `FormData` (`object` when `FormData` is not in your compilation) |
+
+`isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks (`isMobile`, `isBrowser`, ...) return plain `boolean`. They accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` lands in the else branch. `isNumeric` also accepts numeric strings and single-element arrays (`String([5])` is `"5"`), so it cannot be typed as `number` either.
+
+Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass with a different class name returns `false`.
+
+**Upgrading from 2.x:** the runtime is identical, but the types are stricter. Values typed `any` are narrowed by a type predicate, so `if (isPlainObject(data)) { data.user.name }` on an `any` value now fails with "'data.user' is of type 'unknown'". Type the value (`const data: UserPayload`) or narrow further after the guard.
+
+```ts
+import { isPlainObject, isString } from "@mongez/supportive-is";
+
+function readPort(input: unknown) {
+  if (!isPlainObject(input)) throw new Error("Expected a plain object");
+  return input.port ?? 3000;              // input: Record<string, unknown>
+}
+
+function upper(v: string | number) {
+  return isString(v) ? v.toUpperCase() : v.toFixed(2);   // string / number
+}
+```
+
 ## Primitives & numbers
 
 > **Auto-trigger:** code imports `isString`, `isNumeric`, `isInt`, `isFloat`, `isPrimitive`, or `isScalar` from `@mongez/supportive-is`; user asks "how do I check string / number / int / float", "detect a numeric string like '12'", "difference between isPrimitive and isScalar", or "type-narrow a string in TS"; typical import is `import { isString, isNumeric } from "@mongez/supportive-is"` (or `Is.string(x)` / `Is.numeric(x)` via the legacy default `Is` namespace).

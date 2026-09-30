@@ -6,7 +6,7 @@ description: |
 
 # Formats
 
-Five string-format predicates. **None of them are security gates** — they're convenience filters. For validation that needs to be trustworthy (auth flows, redirect targets, stored emails), use a real validator like `zod` plus a domain-specific library.
+Five string-format predicates. `isRegex` is a `value is RegExp` type predicate (it checks `constructor.name === "RegExp"`). `isJson`, `isUrl`, `isEmail` and `isValidId` return plain `boolean` on purpose: they accept a subset of `string`, so a `value is string` predicate would narrow a `string` to `never` in the false branch. **None of them are security gates** — they're convenience filters. For validation that needs to be trustworthy (auth flows, redirect targets, stored emails), use a real validator like `zod` plus a domain-specific library.
 
 | Predicate | Quick rule |
 |---|---|

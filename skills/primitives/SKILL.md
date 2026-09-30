@@ -29,15 +29,17 @@ isString(0);               // false
 isString(null);            // false
 ```
 
-For TS narrowing, wrap it in a typed guard — `isString` itself is typed as `(value: any) => boolean`, not `value is string`:
+`isString` is a `value is string` type predicate on `unknown`, so it narrows both branches:
 
 ```ts
 import { isString } from "@mongez/supportive-is";
 
-function isStr(v: unknown): v is string {
-  return isString(v);
+function upper(v: string | number) {
+  return isString(v) ? v.toUpperCase() : v.toFixed(2); // string / number
 }
 ```
+
+`isPrimitive` (`value is string | boolean | number | bigint`) and `isScalar` (`value is string | boolean | number | symbol | bigint`) are predicates too. `isNumeric`, `isInt` and `isFloat` return plain `boolean` on purpose: they accept a subset of `number`, so a predicate would make `n` `never` in the false branch for `n: number` (`isNumeric` also accepts numeric strings and `[5]`).
 
 ## `isNumeric`
 

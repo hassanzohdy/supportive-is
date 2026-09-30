@@ -8,6 +8,8 @@ description: |
 
 Five predicates that ask "what shape of value is this, and is it empty?". `isObject`, `isPlainObject`, `Is.array`, `isIterable`, and `isEmpty`.
 
+Types: `isObject` is `value is object`, `isPlainObject` is `value is Record<string, unknown>`, `isIterable` is `value is Iterable<unknown>`, and `Is.array` is `Array.isArray`. `isEmpty` stays `boolean` because it is not a test for one type, so a predicate would narrow the false branch incorrectly. Note `isObject` is `false` for functions even though `Function` is assignable to `object`. On `any` values these predicates narrow, so `isPlainObject(x) && x.user.name` needs a typed `x`.
+
 | Predicate | Quick rule |
 |---|---|
 | `isObject(v)` | Truthy AND `typeof v === "object"` |

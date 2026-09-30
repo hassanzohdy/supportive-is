@@ -138,25 +138,39 @@ function find(haystack: string, needle: string | RegExp) {
 
 ## Type narrowing in TypeScript
 
-None of the predicates ship as declared TypeScript type guards — they're all typed `(value: any) => boolean`. Wrap them with your own typed guard when you need narrowing on a union:
+The type-checking guards are declared type predicates on `unknown`, so no wrapper is needed:
 
 ```ts
 import { isString, isPlainObject } from "@mongez/supportive-is";
 
-function isStr(v: unknown): v is string {
-  return isString(v);
-}
-
-function isObjLike<T extends object>(v: unknown): v is T {
-  return isPlainObject(v);
-}
-
 function greet(v: string | number) {
-  if (isStr(v)) {
+  if (isString(v)) {
     return `Hello, ${v.toUpperCase()}`;  // v is narrowed to string here
   }
   return `Number: ${v.toFixed(2)}`;       // v is narrowed to number here
 }
+
+function readPort(input: unknown) {
+  if (!isPlainObject(input)) throw new Error("Expected a plain object");
+  return input.port ?? 3000;                // input: Record<string, unknown>
+}
 ```
 
-The wrapper compiles to a single call — there's no runtime cost.
+| Function | Narrows `unknown` to |
+|---|---|
+| `isString` | `string` |
+| `isPlainObject` | `Record<string, unknown>` |
+| `isObject` | `object` |
+| `isDate` | `Date` |
+| `isRegex` | `RegExp` |
+| `isPromise` | `Promise<unknown>` |
+| `isIterable` | `Iterable<unknown>` |
+| `isGenerator` | `IterableIterator<unknown>` (duck-typed: `next()` plus self-iterable) |
+| `isScalar` | `string \| boolean \| number \| symbol \| bigint` |
+| `isPrimitive` | `string \| boolean \| number \| bigint` |
+| `isFormElement` | `HTMLFormElement` (`object` when the DOM lib is not in your compilation) |
+| `isFormData` | `FormData` (`object` when `FormData` is not in your compilation) |
+
+`isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks (`isMobile`, `isBrowser`, ...) return plain `boolean`. They accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` lands in the else branch. `isNumeric` also accepts numeric strings and single-element arrays (`String([5])` is `"5"`), so it cannot be typed as `number` either.
+
+Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass with a different class name returns `false`.

@@ -64,7 +64,7 @@ Tree-shakable predicates — import only what you use.
 
 | Concept | What it means |
 |---|---|
-| **Pure predicates** | Single-argument functions: take a value, return boolean-ish. No side effects, no allocation. |
+| **Pure predicates** | Single-argument functions on `unknown`: take a value, return a boolean. Twelve are real TypeScript type predicates (`value is T`). No side effects, no allocation. |
 | **`Is` namespace** | A bag of references to the same functions, kept for v1 compatibility. Doesn't tree-shake — prefer named imports. |
 | **Environment probes** | Touch `navigator` / `window` / `document` at call time. Server-safe to import, server-unsafe to call. |
 | **"Smart" emptiness** | `isEmpty` collapses null / undefined / "" / [] / {} / `new Map()` / `new Set()` into one check, with `0` and `false` deliberately not empty. |

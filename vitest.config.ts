@@ -17,5 +17,10 @@ export default defineConfig({
     environment: "happy-dom",
     globals: false,
     include: ["src/**/*.test.ts"],
+    // Type-level tests (expectTypeOf) live in *.test-d.ts and run through tsc.
+    typecheck: {
+      enabled: true,
+      include: ["src/**/*.test-d.ts"],
+    },
   },
 });

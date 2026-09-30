@@ -2,22 +2,54 @@ declare let window: any;
 declare let document: any;
 
 /**
+ * The `HTMLFormElement` type when the DOM lib is part of the consumer's
+ * compilation, otherwise the closest honest fallback (`object`). Resolving it
+ * through `typeof globalThis` keeps this package's typings from requiring
+ * `lib: ["dom"]` in Node-only projects.
+ */
+export type FormElementType = typeof globalThis extends {
+  HTMLFormElement: { prototype: infer Form };
+}
+  ? Form
+  : object;
+
+/**
+ * The `FormData` type when it is available in the consumer's compilation
+ * (DOM lib or `@types/node`), otherwise `object`.
+ */
+export type FormDataType = typeof globalThis extends {
+  FormData: { prototype: infer Data };
+}
+  ? Data
+  : object;
+
+/**
+ * Every value `isScalar` accepts.
+ */
+export type ScalarValue = string | boolean | number | symbol | bigint;
+
+/**
+ * Every value `isPrimitive` accepts (note: no `symbol`, `null` or `undefined`).
+ */
+export type PrimitiveValue = string | boolean | number | bigint;
+
+/**
  * Determine whether the given value is a number whatever if its data type is String or Number
  */
-export function isNumeric(value: any): boolean {
+export function isNumeric(value: unknown): boolean {
   return /^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/.test(String(value));
 }
 
 /**
  * Check if the given value is int
  */
-export const isInt = (value: any): boolean =>
+export const isInt = (value: unknown): boolean =>
   typeof value === "number" && Number.isInteger(value);
 
 /**
  * Check if the given value is float
  */
-export const isFloat = (value: any): boolean =>
+export const isFloat = (value: unknown): boolean =>
   typeof value === "number" &&
   Number.isFinite(value) &&
   /^-?\d+\.\d+$/.test(String(value));
@@ -25,35 +57,43 @@ export const isFloat = (value: any): boolean =>
 /**
  * Check if the given value is a regex
  */
-export const isRegex = (value: any): boolean =>
-  Boolean(value) && value.constructor?.name === "RegExp";
+export const isRegex = (value: unknown): value is RegExp =>
+  Boolean(value) &&
+  (value as { constructor?: { name?: string } }).constructor?.name ===
+    "RegExp";
 
 /**
  * Check if the given value is an object
+ * Arrays, dates and class instances are objects; `null` and functions are not
  */
-export const isObject = (value: any): boolean =>
+export const isObject = (value: unknown): value is object =>
   Boolean(value) && typeof value === "object";
 
 /**
  * Check if the given value is a plain object
  */
-export const isPlainObject = (value: any): boolean => {
+export const isPlainObject = (
+  value: unknown,
+): value is Record<string, unknown> => {
   if (!value || typeof value !== "object") return false;
   const proto = Object.getPrototypeOf(value);
   if (proto === null) return true;
-  return value.constructor?.name === "Object";
+  return (
+    (value as { constructor?: { name?: string } }).constructor?.name ===
+    "Object"
+  );
 };
 
 /**
  * Check if the given value is validId
  */
-export const isValidId = (value: any) =>
+export const isValidId = (value: unknown): boolean =>
   Boolean(value && /^[A-Za-z][\w\-:.]*$/.test(String(value)));
 
 /**
  * Check if the given value is a form element
  */
-export const isFormElement = (value: any) =>
+export const isFormElement = (value: unknown): value is FormElementType =>
   typeof HTMLFormElement === "undefined"
     ? false
     : value instanceof HTMLFormElement;
@@ -61,54 +101,62 @@ export const isFormElement = (value: any) =>
 /**
  * Check if the given value is a form data
  */
-export const isFormData = (value: any) => value instanceof FormData;
+export const isFormData = (value: unknown): value is FormDataType =>
+  value instanceof FormData;
 
 /**
  * Check if the given value is iterable
  */
-export const isIterable = (value: any): boolean =>
+export const isIterable = (value: unknown): value is Iterable<unknown> =>
   value !== null &&
   value !== undefined &&
-  typeof (value as any)[Symbol.iterator] === "function";
+  typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] ===
+    "function";
 
 /**
  * Check if the given value is a scalar value
  */
-export const isScalar = (value: any) =>
+export const isScalar = (value: unknown): value is ScalarValue =>
   ["string", "boolean", "number", "symbol", "bigint"].includes(typeof value);
 
 /**
  * Check if the given value is a string
  */
-export const isString = (value: any) => typeof value === "string";
+export const isString = (value: unknown): value is string =>
+  typeof value === "string";
 
 /**
- * Check if the given value is a pr value
+ * Check if the given value is a primitive value
+ * (string, boolean, number or bigint — symbols, `null` and `undefined` are not)
  */
-export const isPrimitive = (value: any) =>
+export const isPrimitive = (value: unknown): value is PrimitiveValue =>
   ["string", "boolean", "number", "bigint"].includes(typeof value);
 
 /**
  * Check if the given value is a promise
  */
-export const isPromise = (value: any): boolean =>
+export const isPromise = (value: unknown): value is Promise<unknown> =>
   Boolean(value) && value instanceof Promise;
 
 /**
  * Check if the given value is a date
  */
-export const isDate = (value: any): boolean =>
+export const isDate = (value: unknown): value is Date =>
   Boolean(value) && typeof value === "object" && value instanceof Date;
 
 /**
  * Check if the given value is a generator
+ * Duck-typed: any object with a `next()` method that is its own iterator, so
+ * the predicate is `IterableIterator` (not `Generator`, whose `return` and
+ * `throw` methods are not verified)
  */
-export const isGenerator = (value: any): boolean =>
+export const isGenerator = (value: unknown): value is IterableIterator<unknown> =>
   Boolean(value) &&
   typeof value === "object" &&
-  typeof (value as any).next === "function" &&
-  typeof (value as any)[Symbol.iterator] === "function" &&
-  (value as any)[Symbol.iterator]() === value;
+  typeof (value as { next?: unknown }).next === "function" &&
+  typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] ===
+    "function" &&
+  (value as IterableIterator<unknown>)[Symbol.iterator]() === value;
 
 /**
  * Check if the given value is empty
@@ -116,10 +164,10 @@ export const isGenerator = (value: any): boolean =>
  * Empty object is considered empty
  * Empty array is considered empty
  */
-export const isEmpty = (value: any): boolean => {
-  if ([0, true, false].includes(value)) return false;
+export const isEmpty = (value: unknown): boolean => {
+  if (([0, true, false] as unknown[]).includes(value)) return false;
 
-  if (["", null, undefined].includes(value)) return true;
+  if ((["", null, undefined] as unknown[]).includes(value)) return true;
 
   // NaN: treat as non-empty (it is still a number value)
   if (typeof value === "number" && Number.isNaN(value)) return false;
@@ -136,13 +184,14 @@ export const isEmpty = (value: any): boolean => {
   if (
     typeof value === "object" &&
     !Array.isArray(value) &&
-    typeof value[Symbol.iterator] !== "function"
+    typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] !==
+      "function"
   ) {
-    return Object.keys(value).length === 0;
+    return Object.keys(value as object).length === 0;
   }
 
   if (isIterable(value)) {
-    return value.length === 0;
+    return (value as { length?: number }).length === 0;
   }
 
   // this is used here for zero
@@ -154,10 +203,10 @@ export const isEmpty = (value: any): boolean => {
 /**
  * Check if the given value is a valid json
  */
-export const isJson = (value: any) => {
+export const isJson = (value: unknown): boolean => {
   if (!value || typeof value !== "string") return false;
 
-  if (!["[", "{"].includes(value?.[0])) return false;
+  if (!["[", "{"].includes(value[0])) return false;
 
   try {
     JSON.parse(value);
@@ -170,7 +219,7 @@ export const isJson = (value: any) => {
 /**
  * Check if the given value is valid url
  */
-export const isUrl = (value: any): boolean => {
+export const isUrl = (value: unknown): boolean => {
   if (!value || typeof value !== "string") return false;
 
   try {
@@ -190,7 +239,7 @@ export const isUrl = (value: any): boolean => {
 /**
  * Check if the given value is a valid email
  */
-export const isEmail = (value: any): boolean =>
+export const isEmail = (value: unknown): boolean =>
   typeof value === "string" &&
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
     value

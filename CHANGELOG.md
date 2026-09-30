@@ -1,5 +1,50 @@
 # Changelog — @mongez/supportive-is
 
+## [3.0.0] — 2026-09-30
+
+The runtime is byte-for-byte the same: no predicate returns a different value for any input. This is a major release because the **types** are now stricter, and stricter narrowing breaks a common pattern (see *Breaking (types only)*).
+
+### Changed
+
+- **Twelve checkers are now TypeScript type predicates** (`value is T`), so `tsc` narrows in both branches. Every checker's parameter is `unknown` instead of `any`.
+
+  | Function | Predicate |
+  |---|---|
+  | `isString` | `value is string` |
+  | `isPlainObject` | `value is Record<string, unknown>` |
+  | `isObject` | `value is object` |
+  | `isDate` | `value is Date` |
+  | `isRegex` | `value is RegExp` |
+  | `isPromise` | `value is Promise<unknown>` |
+  | `isIterable` | `value is Iterable<unknown>` |
+  | `isGenerator` | `value is IterableIterator<unknown>` (duck-typed: `next()` plus self-iterable; `Generator`'s `return`/`throw` are not verified) |
+  | `isScalar` | `value is string \| boolean \| number \| symbol \| bigint` |
+  | `isPrimitive` | `value is string \| boolean \| number \| bigint` |
+  | `isFormElement` | `value is HTMLFormElement` (falls back to `object` when the DOM lib is not in the consumer's compilation, so the typings never require `lib: ["dom"]`) |
+  | `isFormData` | `value is FormData` (falls back to `object` when `FormData` is not declared) |
+
+- **Kept as plain `boolean`, on purpose:** `isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks. These accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` takes the else branch. `isNumeric` additionally accepts numeric strings and single-element arrays (`String([5]) === "5"`), so neither `number` nor `` number | `${number}` `` would be true. `isEmpty` is not a test for one type.
+- Known limits of the predicates, documented in the README: `isObject` returns `false` for functions although `Function` is assignable to `object`; `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass under another class name returns `false`.
+
+### Breaking (types only)
+
+- A value typed `any` is narrowed by a type predicate. Code such as `if (isPlainObject(data)) { data.user.name }` (with `data: any`, e.g. a `JSON.parse` result) compiled before and now fails with `'data.user' is of type 'unknown'`; the same applies to `isObject`, `isIterable` and `isPromise` on `any`. Type the value (`const data: Payload`), or narrow further after the guard. No runtime change, no change for `unknown`- or union-typed values.
+
+### Added
+
+- Exported helper types: `ScalarValue`, `PrimitiveValue`, `FormElementType`, `FormDataType`.
+- Type-level tests (`src/__tests__/types.test-d.ts`, `expectTypeOf`, run by `vitest` typecheck mode) and runtime narrowing tests (`src/__tests__/guards.test.ts`). `npm run test:types` runs `tsc --noEmit`.
+
+### Docs
+
+- README, `llms.txt`, `llms-full.txt` and the skills describe the predicates and the boolean-only checkers. They previously claimed `isString` (or nothing) was a type guard.
+
+### Tests
+
+```
+102 runtime tests across 6 files + 6 type-level tests (types.test-d.ts) = 108
+```
+
 ## [2.1.4] — 2026-08-17
 
 ### Security

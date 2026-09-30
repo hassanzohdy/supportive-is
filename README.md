@@ -45,7 +45,7 @@ isUrl("https://example.com");  // true
 | **Legacy `Is` namespace** | `import Is from "@mongez/supportive-is"; Is.empty(x)` still works — same functions, different shape, no tree-shaking. |
 | **SSR-safe imports** | DOM-touching predicates read `navigator`/`window`/`document` *at call time*, never at module-eval. Importing the package on the server is always safe. |
 | **Zero runtime dependencies** | One source file. No transitive packages. |
-| **TypeScript-first** | `isString` is a real `value is string` type guard out of the box. |
+| **TypeScript-first** | Twelve checks are real type predicates on `unknown` (`isString`, `isPlainObject`, `isDate`, `isPromise`, `isIterable`, ...) so `tsc` narrows for you. See [Type predicates](#type-predicates). |
 
 ---
 
@@ -130,7 +130,7 @@ isPrimitive(Symbol("x"));  // false  — by design
 isScalar(Symbol("x"));     // true
 ```
 
-> **`isString` is the only one that narrows in TypeScript out of the box.** The others are typed as `(value: any) => boolean` because the parameter is `any`. Wrap them in your own typed guard (`function isObjLike<T extends object>(v: unknown): v is T { return isPlainObject(v); }`) when you need narrowing on union types.
+> **TypeScript:** `isString` narrows to `string`, and the other type-checking guards (`isPlainObject`, `isDate`, `isPromise`, ...) are real type predicates too. The refinement checks (`isInt`, `isFloat`, `isNumeric`, `isEmpty`, ...) stay `boolean`. See [Type predicates](#type-predicates).
 
 ---
 
@@ -532,7 +532,7 @@ findAll("v1.2.3 and v4.5.6", /v\d+/g);      // ["v1", "v4"]
 
 ### Narrow a union type in TypeScript
 
-Reach for this when you have a `string | number` (or similar) and want both branches typed correctly. `isString` is a built-in `value is string` guard. For the other predicates the parameter is typed as `any`, so you wrap them in your own type guard.
+Reach for this when you have a `string | number` (or similar) and want both branches typed correctly. The type-checking guards are built-in `value is T` predicates on `unknown`, so no wrapper is needed.
 
 ```ts
 import { isString, isPlainObject } from "@mongez/supportive-is";
@@ -544,13 +544,8 @@ function format(v: string | number): string {
   return v.toFixed(2);               // v narrowed to number
 }
 
-// For predicates without built-in narrowing, wrap your own:
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return isPlainObject(v);
-}
-
 function readConfig(input: unknown) {
-  if (!isRecord(input)) throw new Error("Expected a plain object");
+  if (!isPlainObject(input)) throw new Error("Expected a plain object");
   // input is now typed as Record<string, unknown>
   return input.port ?? 3000;
 }
@@ -597,36 +592,41 @@ const ns: typeof Is = Is;          // value reference
 type Namespace = typeof IsType;    // type-only reference (e.g. for generics)
 ```
 
-Most predicates are typed as `(value: any) => boolean` because they accept anything you can hand them. The exception is `isString`, which TypeScript narrows to `value is string` automatically:
+### Type predicates
+
+Every checker takes `unknown`. The ones whose runtime test is exactly "is this a `T`" are declared as `value is T` type predicates, so `tsc` narrows both branches:
+
+| Function | Narrows `unknown` to |
+|---|---|
+| `isString` | `string` |
+| `isPlainObject` | `Record<string, unknown>` |
+| `isObject` | `object` |
+| `isDate` | `Date` |
+| `isRegex` | `RegExp` |
+| `isPromise` | `Promise<unknown>` |
+| `isIterable` | `Iterable<unknown>` |
+| `isGenerator` | `IterableIterator<unknown>` (duck-typed: `next()` plus self-iterable) |
+| `isScalar` | `string \| boolean \| number \| symbol \| bigint` |
+| `isPrimitive` | `string \| boolean \| number \| bigint` |
+| `isFormElement` | `HTMLFormElement` (`object` when the DOM lib is not in your compilation) |
+| `isFormData` | `FormData` (`object` when `FormData` is not in your compilation) |
 
 ```ts
-import { isString } from "@mongez/supportive-is";
+import { isPlainObject, isDate, isPromise } from "@mongez/supportive-is";
 
-function format(v: string | number): string {
-  if (isString(v)) return v.toUpperCase();  // v: string
-  return v.toFixed(2);                       // v: number
+function describe(input: unknown) {
+  if (isPlainObject(input)) return Object.keys(input);   // Record<string, unknown>
+  if (isDate(input)) return input.toISOString();          // Date
+  if (isPromise(input)) return input.then(String);        // Promise<unknown>
+  return String(input);
 }
 ```
 
-For the others, wrap them in your own typed guard when you need narrowing on a union:
+`isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks (`isMobile`, `isBrowser`, ...) return plain `boolean`. They accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` lands in the else branch. `isNumeric` also accepts numeric strings and single-element arrays (`String([5])` is `"5"`), so it cannot be typed as `number` either.
 
-```ts
-import { isPlainObject, isPromise, isDate } from "@mongez/supportive-is";
+Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass with a different class name returns `false`.
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return isPlainObject(v);
-}
-
-function isThenable<T>(v: unknown): v is Promise<T> {
-  return isPromise(v);
-}
-
-function isDateInstance(v: unknown): v is Date {
-  return isDate(v);
-}
-```
-
-This wrapping pattern is one line, and you only need to do it once per predicate per project. The wrapper compiles to a single call — there's no runtime cost.
+**Upgrading from 2.x:** the runtime is identical, but the types are stricter. Values typed `any` are narrowed by a type predicate, so `if (isPlainObject(data)) { data.user.name }` on an `any` value now fails with "'data.user' is of type 'unknown'". Type the value (`const data: UserPayload`) or narrow further after the guard.
 
 ---
 
