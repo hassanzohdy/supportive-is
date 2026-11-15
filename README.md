@@ -101,7 +101,7 @@ Six predicates for primitive and numeric types. All run in `O(1)` everywhere.
 | Export | Rule | Notes |
 |---|---|---|
 | `isString(value)` | `typeof value === "string"` | TS narrows correctly. Excludes `new String("x")`. |
-| `isNumeric(value)` | Number or numeric string | Accepts `"12"`, `"-1.5"`, `"+1"`, `"1.5E-3"`. Rejects `""`, `"1."`, `"12abc"`. |
+| `isNumeric(value)` | Number or numeric string | Accepts `"12"`, `"-1.5"`, `"+1"`, `"1.5E-3"`. Rejects `""`, `"1."`, `"12abc"` and values that overflow to `Infinity` (`"1e400"`); never throws. |
 | `isInt(value)` | `typeof value === "number"` AND `Number.isInteger(value)` | Accepts signed ints, rejects `1.5`, `"2"`, `NaN`, `Infinity`. |
 | `isFloat(value)` | Finite `number` whose string form has a fractional part | Accepts `1.5`, `-0.1`. Rejects `1`, `1.0`, `"1.5"`. |
 | `isPrimitive(value)` | `string` / `number` / `boolean` / `bigint` | **Excludes `symbol`** and `null`/`undefined`. |
@@ -141,7 +141,7 @@ Five predicates that answer "what shape is this, and is there anything in it?".
 | Export | Rule |
 |---|---|
 | `isObject(value)` | Truthy AND `typeof value === "object"`. Includes arrays, dates, regexes, class instances. Excludes `null` and functions. |
-| `isPlainObject(value)` | `{}` / `new Object()` / `Object.create(null)` only — **not** arrays, dates, class instances. |
+| `isPlainObject(value)` | `{}` / `new Object()` / `Object.create(null)` (or a plain object from another realm) — **not** arrays, dates, class instances. Checks the prototype, so a `constructor` data key does not matter. |
 | `Is.array(value)` | Alias for `Array.isArray`. |
 | `isIterable(value)` | Implements `[Symbol.iterator]` — arrays, strings, `Set`, `Map`, custom generators. |
 | `isEmpty(value)` | Smart emptiness — see [Empty semantics](#empty-semantics). |
@@ -229,11 +229,11 @@ Five string-format predicates. **None of these are security gates.** They're con
 
 | Export | Rule |
 |---|---|
-| `isRegex(value)` | RegExp instance or regex literal. |
+| `isRegex(value)` | Real RegExp (literal, `new RegExp`, subclass or another realm's); brand-checked, so a spoofed `constructor.name` does not pass. |
 | `isValidId(value)` | Valid HTML `id` attribute — `/^[A-Za-z]+[\w\-:.]*$/`. Also aliased as `Is.validHtmlId`. |
 | `isJson(value)` | Valid JSON string starting with `{` or `[`. **Rejects primitive JSON** (`"true"`, `"123"`, `'"hello"'`). |
 | `isUrl(value)` | Constructable `new URL(value)` with `http:` / `https:` protocol and a non-empty dotted hostname. |
-| `isEmail(value)` | Standard RFC 5322 subset regex. |
+| `isEmail(value)` | Practical RFC 5322 subset: unquoted local part (max 64), hyphen-safe domain labels and a 2+ letter TLD (or an IP literal), max 254 characters. |
 
 ```ts
 import { isRegex, isValidId, isJson, isUrl, isEmail } from "@mongez/supportive-is";
@@ -624,7 +624,7 @@ function describe(input: unknown) {
 
 `isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks (`isMobile`, `isBrowser`, ...) return plain `boolean`. They accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` lands in the else branch. `isNumeric` also accepts numeric strings and single-element arrays (`String([5])` is `"5"`), so it cannot be typed as `number` either.
 
-Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass with a different class name returns `false`.
+Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` is a brand check (the built-in `RegExp.prototype.source` getter), so RegExp subclasses and RegExps from another realm (iframe, `vm` context) return `true`, and an object that fakes `constructor.name` or `Symbol.toStringTag` returns `false`.
 
 **Upgrading from 2.x:** the runtime is identical, but the types are stricter. Values typed `any` are narrowed by a type predicate, so `if (isPlainObject(data)) { data.user.name }` on an `any` value now fails with "'data.user' is of type 'unknown'". Type the value (`const data: UserPayload`) or narrow further after the guard.
 

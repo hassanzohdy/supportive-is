@@ -80,7 +80,7 @@ Every checker takes `unknown`. The ones whose runtime test is exactly "is this a
 
 `isInt`, `isFloat`, `isNumeric`, `isJson`, `isUrl`, `isEmail`, `isValidId`, `isEmpty` and the environment checks (`isMobile`, `isBrowser`, ...) return plain `boolean`. They accept a *subset* of their base type, so a predicate would narrow the false branch wrongly: with `n: number`, `if (isInt(n)) {} else { n }` would make `n` `never` although `1.5` lands in the else branch. `isNumeric` also accepts numeric strings and single-element arrays (`String([5])` is `"5"`), so it cannot be typed as `number` either.
 
-Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` checks `constructor.name === "RegExp"`, so a RegExp subclass with a different class name returns `false`.
+Caveats: `isObject` and `isPlainObject` are structural, so a function-typed union member is dropped from the false branch of `isObject` even though it returns `false` for functions. `isRegex` is a brand check (the built-in `RegExp.prototype.source` getter), so RegExp subclasses and RegExps from another realm (iframe, `vm` context) return `true`, and an object that fakes `constructor.name` or `Symbol.toStringTag` returns `false`.
 
 **Upgrading from 2.x:** the runtime is identical, but the types are stricter. Values typed `any` are narrowed by a type predicate, so `if (isPlainObject(data)) { data.user.name }` on an `any` value now fails with "'data.user' is of type 'unknown'". Type the value (`const data: UserPayload`) or narrow further after the guard.
 
@@ -131,6 +131,8 @@ isNumeric("1.");       // false
 isNumeric("12abc");    // false
 isNumeric(null);       // false
 isNumeric(undefined);  // false
+isNumeric("1e400");    // false  (since 3.0.1: overflows to Infinity)
+isNumeric(Object.create(null)); // false  (never throws)
 ```
 
 > **BUG (`src/index.ts:10`)**: the regex carries the `/g` flag. `RegExp.prototype.test` advances `lastIndex` between calls, so repeated calls on the same input alternate `true` / `false`. Remove the `g` flag or reset `lastIndex` per call.
@@ -234,7 +236,7 @@ To check "object but not array": `isObject(x) && !Array.isArray(x)`.
 
 ### `isPlainObject(value)`
 
-`value.constructor.name === "Object"`. Returns `true` only for `{}` and `new Object()`.
+Prototype check: `true` when the prototype is `Object.prototype`, `null`, or another realm's `Object.prototype` (since 3.0.1; it used to read `constructor.name`). Returns `true` for `{}`, `new Object()` and `Object.create(null)`.
 
 ```ts
 isPlainObject({});           // true
@@ -244,6 +246,7 @@ isPlainObject(new Object()); // true
 isPlainObject([]);           // false
 isPlainObject(new Date());   // false
 isPlainObject(new class {}); // false
+isPlainObject(JSON.parse('{"constructor":"x"}')); // true  (since 3.0.1: prototype check, not constructor.name)
 ```
 
 > **BUG (`src/index.ts:39`)**: throws on `Object.create(null)` because `value.constructor` is `undefined`. Add an optional chain.
@@ -319,14 +322,15 @@ isEmpty(1);           // false
 
 ### `isRegex(value)`
 
-Constructor-name check (`"RegExp"`).
+Brand check through the built-in `RegExp.prototype.source` getter, so subclasses and cross-realm RegExps pass (since 3.0.1; it used to read `constructor.name`, which JSON data could spoof).
 
 ```ts
 isRegex(/x/);             // true
 isRegex(new RegExp("x")); // true
 
 isRegex("/x/");           // false
-isRegex(null);            // falsy
+isRegex(null);            // false
+isRegex({ constructor: { name: "RegExp" } }); // false  (since 3.0.1)
 ```
 
 ### `isValidId(value)` / `Is.validHtmlId`
@@ -387,7 +391,7 @@ isUrl(undefined);             // false
 
 ### `isEmail(value)`
 
-Standard email regex.
+Unquoted local part of 1–64 characters, `@`, then dot-separated domain labels that do not start or end with `-` and a TLD of 2+ letters (or an IP literal such as `[1.2.3.4]`). Total length ≤ 254. Since 3.0.1, quoted local parts such as `"a b"@x.com` are rejected. CR/LF is always rejected.
 
 ```ts
 isEmail("user@example.com");        // true
@@ -400,6 +404,8 @@ isEmail("a@b");                     // false   (no TLD)
 isEmail("");                        // false
 isEmail(null);                      // false   (regex coerces to "null")
 isEmail(undefined);                 // false
+isEmail('"<a>"@x.com');              // false   (quoted local part, since 3.0.1)
+isEmail("a@-b.com");                // false   (label starts with -, since 3.0.1)
 ```
 
 > **BUG (`src/index.ts:168`)**: matches single-element arrays (`isEmail(["x@y.com"]) === true`) because `RegExp.prototype.test` coerces with `String()` and `["x@y.com"].toString() === "x@y.com"`. Gate with `typeof value === "string"`.

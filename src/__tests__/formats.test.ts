@@ -1,3 +1,4 @@
+import vm from "node:vm";
 import { describe, expect, it } from "vitest";
 import {
   isRegex,
@@ -28,6 +29,22 @@ describe("isRegex", () => {
     // through instead of being coerced to false.
     expect(isRegex(null)).toBeFalsy();
     expect(isRegex(undefined)).toBeFalsy();
+  });
+
+  it("is not fooled by a spoofed constructor name or toStringTag", () => {
+    expect(isRegex({ constructor: { name: "RegExp" } })).toBe(false);
+    expect(isRegex({ [Symbol.toStringTag]: "RegExp" })).toBe(false);
+    expect(isRegex(Object.create(RegExp.prototype))).toBe(false);
+    expect(isRegex(RegExp.prototype)).toBe(false);
+  });
+
+  it("returns true for a RegExp from another realm", () => {
+    expect(isRegex(vm.runInNewContext("/x/g"))).toBe(true);
+  });
+
+  it("returns true for a RegExp subclass", () => {
+    class MyRegex extends RegExp {}
+    expect(isRegex(new MyRegex("x"))).toBe(true);
   });
 });
 
@@ -172,6 +189,44 @@ describe("isEmail", () => {
     expect(isEmail(undefined)).toBe(false);
     expect(isEmail(12)).toBe(false);
     expect(isEmail({})).toBe(false);
+  });
+
+  it("rejects quoted local parts", () => {
+    expect(isEmail('"a b"@x.com')).toBe(false);
+    expect(isEmail('"<a>"@x.com')).toBe(false);
+    expect(isEmail('"a\tb"@x.com')).toBe(false);
+    expect(isEmail('"a@b.com"@x.com')).toBe(false);
+  });
+
+  it("rejects domain labels that start or end with a hyphen", () => {
+    expect(isEmail("a@-b.com")).toBe(false);
+    expect(isEmail("a@b-.com")).toBe(false);
+    expect(isEmail("a@b.-c.com")).toBe(false);
+    expect(isEmail("a@b-c.com")).toBe(true);
+  });
+
+  it("rejects CR/LF", () => {
+    expect(isEmail("a\n@x.com")).toBe(false);
+    expect(isEmail("a@x.com\n")).toBe(false);
+    expect(isEmail("a\r@x.com")).toBe(false);
+  });
+
+  it("caps the local part at 64 and the whole address at 254 characters", () => {
+    expect(isEmail("a".repeat(64) + "@x.com")).toBe(true);
+    expect(isEmail("a".repeat(65) + "@x.com")).toBe(false);
+
+    const domain = (pad: string) =>
+      `${pad}${("b".repeat(60) + ".").repeat(3)}com`;
+    const at254 = "a".repeat(64) + "@" + domain("xx.");
+    expect(at254.length).toBe(254);
+    expect(isEmail(at254)).toBe(true);
+    const at255 = "a".repeat(64) + "@" + domain("xxx.");
+    expect(at255.length).toBe(255);
+    expect(isEmail(at255)).toBe(false);
+  });
+
+  it("still accepts IP-literal domains", () => {
+    expect(isEmail("a@[1.2.3.4]")).toBe(true);
   });
 
   it(

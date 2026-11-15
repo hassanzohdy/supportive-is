@@ -37,7 +37,20 @@ export type PrimitiveValue = string | boolean | number | bigint;
  * Determine whether the given value is a number whatever if its data type is String or Number
  */
 export function isNumeric(value: unknown): boolean {
-  return /^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/.test(String(value));
+  let text: string;
+
+  try {
+    text = String(value);
+  } catch {
+    // e.g. Object.create(null) or an object whose toString throws
+    return false;
+  }
+
+  // "1e400" matches the shape but is Infinity, which is not a usable number
+  return (
+    /^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$/.test(text) &&
+    Number.isFinite(Number(text))
+  );
 }
 
 /**
@@ -54,13 +67,29 @@ export const isFloat = (value: unknown): boolean =>
   Number.isFinite(value) &&
   /^-?\d+\.\d+$/.test(String(value));
 
+const regexSourceGetter = Object.getOwnPropertyDescriptor(
+  RegExp.prototype,
+  "source",
+)?.get;
+
 /**
  * Check if the given value is a regex
+ * Brand check: the `source` getter only accepts real RegExps (any realm,
+ * subclasses included), so neither a fake `constructor.name` nor a
+ * `Symbol.toStringTag` of "RegExp" can spoof it
  */
-export const isRegex = (value: unknown): value is RegExp =>
-  Boolean(value) &&
-  (value as { constructor?: { name?: string } }).constructor?.name ===
-    "RegExp";
+export const isRegex = (value: unknown): value is RegExp => {
+  if (!value || typeof value !== "object" || !regexSourceGetter) return false;
+  // RegExp.prototype passes the getter but is not a RegExp
+  if (value === RegExp.prototype) return false;
+
+  try {
+    regexSourceGetter.call(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Check if the given value is an object
@@ -77,10 +106,12 @@ export const isPlainObject = (
 ): value is Record<string, unknown> => {
   if (!value || typeof value !== "object") return false;
   const proto = Object.getPrototypeOf(value);
-  if (proto === null) return true;
+  if (proto === null || proto === Object.prototype) return true;
+  // Cross-realm plain object (iframe, vm context): its prototype is that
+  // realm's Object.prototype, which itself has a null prototype
   return (
-    (value as { constructor?: { name?: string } }).constructor?.name ===
-    "Object"
+    Object.getPrototypeOf(proto) === null &&
+    Object.prototype.toString.call(value) === "[object Object]"
   );
 };
 
@@ -239,11 +270,18 @@ export const isUrl = (value: unknown): boolean => {
 /**
  * Check if the given value is a valid email
  */
-export const isEmail = (value: unknown): boolean =>
-  typeof value === "string" &&
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-    value
+export const isEmail = (value: unknown): boolean => {
+  if (typeof value !== "string" || value.length > 254) return false;
+
+  const at = value.lastIndexOf("@");
+
+  // local part is capped at 64 characters
+  if (at < 1 || at > 64) return false;
+
+  return /^[^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}))$/.test(
+    value,
   );
+};
 
 /**
  * Check if current user is opening from mobile

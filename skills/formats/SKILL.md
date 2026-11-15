@@ -6,7 +6,7 @@ description: |
 
 # Formats
 
-Five string-format predicates. `isRegex` is a `value is RegExp` type predicate (it checks `constructor.name === "RegExp"`). `isJson`, `isUrl`, `isEmail` and `isValidId` return plain `boolean` on purpose: they accept a subset of `string`, so a `value is string` predicate would narrow a `string` to `never` in the false branch. **None of them are security gates** — they're convenience filters. For validation that needs to be trustworthy (auth flows, redirect targets, stored emails), use a real validator like `zod` plus a domain-specific library.
+Five string-format predicates. `isRegex` is a `value is RegExp` type predicate (a brand check through the built-in `RegExp.prototype.source` getter, so subclasses and cross-realm RegExps pass and a spoofed `constructor.name` or `Symbol.toStringTag` does not). `isJson`, `isUrl`, `isEmail` and `isValidId` return plain `boolean` on purpose: they accept a subset of `string`, so a `value is string` predicate would narrow a `string` to `never` in the false branch. **None of them are security gates** — they're convenience filters. For validation that needs to be trustworthy (auth flows, redirect targets, stored emails), use a real validator like `zod` plus a domain-specific library.
 
 | Predicate | Quick rule |
 |---|---|
@@ -26,6 +26,8 @@ isRegex(new RegExp("x"));      // true
 isRegex("/x/");                // false  (string, not RegExp)
 isRegex("x");                  // false
 isRegex(null);                 // false
+isRegex({ constructor: { name: "RegExp" } }); // false (spoofed constructor name)
+isRegex({ [Symbol.toStringTag]: "RegExp" });  // false (spoofed tag)
 ```
 
 Useful for "did the caller pass a regex or a string" branches:
@@ -108,7 +110,7 @@ isUrl(12);                            // false
 
 ## `isEmail`
 
-Standard email regex from RFC 5322 (the practical subset most projects use).
+Practical subset of RFC 5322: dot-atom local part (max 64 characters), domain of letter/digit/hyphen labels that neither start nor end with `-` and end in a TLD of 2+ letters (or an `[a.b.c.d]` IP literal), whole address max 254 characters. Quoted local parts (`"a b"@x.com`) are not accepted.
 
 ```ts
 isEmail("user@example.com");       // true
@@ -121,6 +123,9 @@ isEmail("user@");                  // false
 isEmail("@example.com");           // false
 isEmail("a@b");                    // false   (no TLD with ≥ 2 letters)
 isEmail("a b@example.com");        // false
+isEmail('"a b"@x.com');             // false   (quoted local parts are rejected)
+isEmail("a@-b.com");               // false   (label starts with a hyphen)
+isEmail("a".repeat(65) + "@x.com"); // false   (local part > 64)
 isEmail("");                       // false
 isEmail(null);                     // false   (typeof-string guard)
 isEmail(undefined);                // false

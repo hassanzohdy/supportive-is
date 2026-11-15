@@ -55,6 +55,8 @@ isNumeric("1.5E-3");   // true
 isNumeric("");         // false
 isNumeric("1.");       // false (trailing dot)
 isNumeric("12abc");    // false
+isNumeric("1e400");    // false (matches the shape but overflows to Infinity)
+isNumeric(Object.create(null)); // false (never throws)
 isNumeric(null);       // false
 ```
 

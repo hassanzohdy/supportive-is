@@ -74,6 +74,25 @@ describe("isNumeric", () => {
       expect(isNumeric("2")).toBe(true);
     },
   );
+
+  it("rejects values that match the shape but overflow to Infinity", () => {
+    expect(isNumeric("1e400")).toBe(false);
+    expect(isNumeric("-1e400")).toBe(false);
+    expect(isNumeric("9".repeat(400))).toBe(false);
+    expect(isNumeric("1e308")).toBe(true);
+  });
+
+  it("never throws, even when the value cannot be converted to a string", () => {
+    expect(isNumeric(Object.create(null))).toBe(false);
+    expect(
+      isNumeric({
+        toString() {
+          throw new Error("boom");
+        },
+      }),
+    ).toBe(false);
+    expect(isNumeric(Symbol("x"))).toBe(false);
+  });
 });
 
 describe("isInt", () => {

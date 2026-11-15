@@ -1,3 +1,4 @@
+import vm from "node:vm";
 import { describe, expect, it } from "vitest";
 import {
   isObject,
@@ -72,6 +73,27 @@ describe("isPlainObject", () => {
       expect(isPlainObject(Object.create(null))).toBe(true);
     },
   );
+
+  it("does not trust a `constructor` data property", () => {
+    expect(isPlainObject(JSON.parse('{"constructor":"x"}'))).toBe(true);
+    expect(isPlainObject({ constructor: { name: "Foo" } })).toBe(true);
+  });
+
+  it("returns false for an instance of a class named Object", () => {
+    // `class Object {}` is a TypeScript error (TS2725), so rename a class instead:
+    // the old check only compared `constructor.name`.
+    class FakeObject {}
+    globalThis.Object.defineProperty(FakeObject, "name", { value: "Object" });
+    expect(FakeObject.name).toBe("Object");
+    expect(isPlainObject(new FakeObject())).toBe(false);
+  });
+
+  it("returns true for plain objects from another realm", () => {
+    expect(isPlainObject(vm.runInNewContext("({})"))).toBe(true);
+    expect(isPlainObject(vm.runInNewContext("({ a: 1 })"))).toBe(true);
+    expect(isPlainObject(vm.runInNewContext("[]"))).toBe(false);
+    expect(isPlainObject(vm.runInNewContext("new Date()"))).toBe(false);
+  });
 });
 
 describe("Is.array (alias for Array.isArray)", () => {

@@ -1,5 +1,25 @@
 # Changelog — @mongez/supportive-is
 
+## [3.0.1] — 2026-11-15
+
+Security fixes for predicates that apps use as validation gates. Type signatures are unchanged. The return value changes only for the inputs listed below.
+
+### Fixed
+
+- **`isNumeric` rejects values that overflow to `Infinity`.** `isNumeric("1e400")` and `isNumeric("9".repeat(400))` were `true`, although `Number(value)` is `Infinity`; they are now `false`. `isNumeric` also never throws: `Object.create(null)` threw `TypeError: Cannot convert object to primitive value` and now returns `false`.
+- **`isPlainObject` checks the prototype instead of `constructor.name`,** which untrusted data controls. A JSON object with a `constructor` key (`JSON.parse('{"constructor":"x"}')`) is now plain; it was not. An instance of a user class named `Object` is no longer plain. Null-prototype and cross-realm plain objects are still plain.
+- **`isRegex` can no longer be spoofed** by `{ constructor: { name: "RegExp" } }` (or a `Symbol.toStringTag` of `"RegExp"`): it is now a brand check through the built-in `RegExp.prototype.source` getter. RegExp subclasses and cross-realm RegExps return `true`; `Object.create(RegExp.prototype)`, which is not a real RegExp, now returns `false`.
+- **`isEmail` is stricter:**
+  - Quoted local parts (`"a b"@x.com`, `"<a>"@x.com`, `"a@b.com"@x.com`) are rejected, because they let `<`, `>` and spaces into an "email" field.
+  - Domain labels that start or end with `-` are rejected.
+  - Addresses longer than 254 characters, or with a local part longer than 64, are rejected.
+  - Normal addresses, `+tag` addresses, subdomains and IP literals are unchanged.
+
+### Changed
+
+- Development tooling only: pnpm 12 with a standalone `pnpm-lock.yaml`, TypeScript 7, Vite 8 and Vitest 5. CI runs on Node 22 and 24. `tsconfig.json` sets `moduleResolution: "bundler"`.
+- The test DOM is now `happy-dom` ^21.0.4, because 15.x has 1 critical, 3 high and 1 moderate advisory. It is a dev dependency only.
+
 ## [3.0.0] — 2026-09-30
 
 The runtime is byte-for-byte the same: no predicate returns a different value for any input. This is a major release because the **types** are now stricter, and stricter narrowing breaks a common pattern (see *Breaking (types only)*).
