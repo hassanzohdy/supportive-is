@@ -236,7 +236,7 @@ To check "object but not array": `isObject(x) && !Array.isArray(x)`.
 
 ### `isPlainObject(value)`
 
-Prototype check: `true` when the prototype is `Object.prototype`, `null`, or another realm's `Object.prototype` (since 3.0.1; it used to read `constructor.name`). Returns `true` for `{}`, `new Object()` and `Object.create(null)`.
+Prototype check: `true` when the prototype is `Object.prototype`, `null`, or another realm's `Object.prototype` (since 3.0.1; it used to read `constructor.name`). Returns `true` for `{}`, `new Object()` and `Object.create(null)`. The built-in prototypes `Object.prototype` and `Array.prototype` themselves (any realm) are `false`, as is any object that is its own constructor's `prototype` (`Map.prototype`, a class's `prototype`).
 
 ```ts
 isPlainObject({});           // true
@@ -246,10 +246,10 @@ isPlainObject(new Object()); // true
 isPlainObject([]);           // false
 isPlainObject(new Date());   // false
 isPlainObject(new class {}); // false
+isPlainObject(Object.prototype); // false (built-in prototypes are never plain, any realm)
+isPlainObject(Array.prototype);  // false
 isPlainObject(JSON.parse('{"constructor":"x"}')); // true  (since 3.0.1: prototype check, not constructor.name)
 ```
-
-> **BUG (`src/index.ts:39`)**: throws on `Object.create(null)` because `value.constructor` is `undefined`. Add an optional chain.
 
 ### `Is.array(value)`
 

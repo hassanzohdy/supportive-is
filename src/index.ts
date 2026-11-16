@@ -100,11 +100,20 @@ export const isObject = (value: unknown): value is object =>
 
 /**
  * Check if the given value is a plain object
+ * Built-in prototypes such as `Object.prototype` and `Array.prototype` are not
  */
 export const isPlainObject = (
   value: unknown,
 ): value is Record<string, unknown> => {
   if (!value || typeof value !== "object") return false;
+  // A built-in prototype object (`Object.prototype`, `Array.prototype`, from
+  // any realm) is never plain: it is the shared prototype, not a data object.
+  // It is the one object whose own `constructor` points back at it.
+  if (Array.isArray(value)) return false;
+  const ctor = Object.prototype.hasOwnProperty.call(value, "constructor")
+    ? (value as { constructor: unknown }).constructor
+    : undefined;
+  if (typeof ctor === "function" && ctor.prototype === value) return false;
   const proto = Object.getPrototypeOf(value);
   if (proto === null || proto === Object.prototype) return true;
   // Cross-realm plain object (iframe, vm context): its prototype is that

@@ -57,6 +57,23 @@ describe("isPlainObject", () => {
     expect(isPlainObject(() => {})).toBe(false);
   });
 
+  it("returns false for built-in prototypes, including another realm's", () => {
+    expect(isPlainObject(Object.prototype)).toBe(false);
+    expect(isPlainObject(Array.prototype)).toBe(false);
+
+    const foreignObjectProto = vm.runInNewContext("Object.prototype");
+    const foreignArrayProto = vm.runInNewContext("Array.prototype");
+
+    expect(isPlainObject(foreignObjectProto)).toBe(false);
+    expect(isPlainObject(foreignArrayProto)).toBe(false);
+  });
+
+  it("keeps null-prototype and cross-realm plain objects plain", () => {
+    expect(isPlainObject(Object.create(null))).toBe(true);
+    expect(isPlainObject(vm.runInNewContext("({})"))).toBe(true);
+    expect(isPlainObject(vm.runInNewContext("({ a: { b: 1 } })"))).toBe(true);
+  });
+
   it("returns a falsy value for null/undefined", () => {
     // Same falsy-return pattern as isObject.
     expect(isPlainObject(null)).toBeFalsy();

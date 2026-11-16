@@ -13,7 +13,7 @@ Types: `isObject` is `value is object`, `isPlainObject` is `value is Record<stri
 | Predicate | Quick rule |
 |---|---|
 | `isObject(v)` | Truthy AND `typeof v === "object"` |
-| `isPlainObject(v)` | Prototype is `Object.prototype`, `null`, or another realm's `Object.prototype` |
+| `isPlainObject(v)` | Prototype is `Object.prototype`, `null`, or another realm's `Object.prototype`; `Object.prototype`, `Array.prototype` (any realm) and any other constructor's `prototype` object are `false` |
 | `Is.array(v)` | `Array.isArray(v)` |
 | `isIterable(v)` | Has a `[Symbol.iterator]` method |
 | `isEmpty(v)` | Smart emptiness (see below) |
@@ -56,6 +56,8 @@ isPlainObject(/x/);                   // false
 isPlainObject(new class {});          // false
 isPlainObject("hello");               // false
 isPlainObject(null);                  // false
+isPlainObject(Object.prototype);      // false  (built-in prototypes are never plain, any realm)
+isPlainObject(Array.prototype);       // false
 isPlainObject(Object.create(null));   // true   (null-prototype objects are plain)
 isPlainObject(JSON.parse('{"constructor":"x"}')); // true  (a `constructor` data key is ignored)
 isPlainObject(vm.runInNewContext("({})"));        // true  (cross-realm plain object)

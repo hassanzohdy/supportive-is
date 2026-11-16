@@ -14,6 +14,7 @@ Security fixes for predicates that apps use as validation gates. Type signatures
   - Domain labels that start or end with `-` are rejected.
   - Addresses longer than 254 characters, or with a local part longer than 64, are rejected.
   - Normal addresses, `+tag` addresses, subdomains and IP literals are unchanged.
+- **`isPlainObject(Object.prototype)` and `isPlainObject(Array.prototype)` return `false`,** including another realm's. A recursive walker gated on `isPlainObject` could otherwise descend into and write onto `Object.prototype`. The same holds for any object that is its own constructor's `prototype` (for example `Map.prototype`, or the `prototype` of a class or function), which also returned `true` before.
 
 ### Changed
 
