@@ -1,6 +1,6 @@
 # Changelog — @mongez/supportive-is
 
-## [3.0.1] — 2026-11-15
+## [3.0.1] — 2026-11-16
 
 Security fixes for predicates that apps use as validation gates. Type signatures are unchanged. The return value changes only for the inputs listed below.
 
